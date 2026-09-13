@@ -494,6 +494,14 @@ function initUI(root) {
             `<label class="stat"><span>${lbl}</span><input type="number" data-save="${i}-${k}" value="${(t.saves && t.saves[k] != null) ? t.saves[k] : 0}"></label>`
           ).join('')}
         </div>
+        <div class="sigils">
+          <label class="sigil" title="скованный, окружённый, лежачий в ближнем бою, дуэль">
+            <input type="checkbox" data-tadv="${i}" ${t.adv ? 'checked' : ''}>
+            <span class="mark"></span>Атаки по нему с преимуществом</label>
+          <label class="sigil" title="дымовая шашка, лежачий в дальнем бою, атака по другой цели в дуэли">
+            <input type="checkbox" data-tdis="${i}" ${t.dis ? 'checked' : ''}>
+            <span class="mark"></span>Атаки по нему с помехой</label>
+        </div>
         ${raceRule ? `<div class="rule">◆ ${raceRule}</div>` : ''}
         <div class="preset">
           <div class="preset-lab">Прикинуть по облику — подставится сразу</div>
@@ -513,6 +521,14 @@ function initUI(root) {
     qsa('[data-ac]').forEach((el) => el.onchange = () => {
       state.targets[Number(el.dataset.ac)].ac = Number(el.value);
       ensureParams(); save(); run();
+    });
+    qsa('[data-tadv]').forEach((el) => el.onchange = () => {
+      state.targets[Number(el.dataset.tadv)].adv = el.checked;
+      save(); run();
+    });
+    qsa('[data-tdis]').forEach((el) => el.onchange = () => {
+      state.targets[Number(el.dataset.tdis)].dis = el.checked;
+      save(); run();
     });
     qsa('[data-hp]').forEach((el) => el.onchange = () => {
       state.targets[Number(el.dataset.hp)].hp = Number(el.value);
@@ -574,7 +590,7 @@ function initUI(root) {
       weapon: weaponForCharacter(c),
       critRange: critRangeForCharacter(c),
       fumbleRange: fumbleRangeForCharacter(c),
-      targets: state.targets.map((t) => ({ ac: t.ac, hp: t.hp, saves: t.saves || { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: t.race || null })),
+      targets: state.targets.map((t) => ({ ac: t.ac, hp: t.hp, saves: t.saves || { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: t.race || null, adv: !!t.adv, dis: !!t.dis })),
       mods: {
         orcReroll: !!(RACES[c.raceKey] && RACES[c.raceKey].orcReroll),
         adv: !!(rel.adv && state.mods.adv),

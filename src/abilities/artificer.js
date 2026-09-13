@@ -1,4 +1,4 @@
-import { attackRoll, isHit, resolveMode, rollNotation, rollDie, sumDice } from '../engine.js';
+import { attackRoll, isHit, resolveModeFor, rollNotation, rollDie, sumDice } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -25,7 +25,7 @@ export const ARTIFICER_ABILITIES = [
       const out = empty(ctx.targets.length);
       const i = ctx.params.target ?? 0;
       const die = AMMO[ctx.params.ammo] || AMMO['усиленный'];
-      const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+      const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
       const nat = attackRoll(ctx.rng, mode);
       const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);
@@ -56,7 +56,7 @@ export const ARTIFICER_ABILITIES = [
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
       const i = ctx.params.target ?? 0;
-      const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+      const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
       const nat = attackRoll(ctx.rng, mode);
       const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);

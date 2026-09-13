@@ -1,4 +1,4 @@
-import { attackRoll, isHit, resolveMode, rollNotation } from '../engine.js';
+import { attackRoll, isHit, resolveModeFor, rollNotation } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -22,7 +22,7 @@ export const DRUID_ABILITIES = [
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
       const i = ctx.params.target ?? 0;
-      const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+      const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bear = (ctx.params.form ?? 'bear') === 'bear';
       const stat = bear ? 'str' : 'dex';
       const die = bear ? (ctx.mods.beastRage ? '1d12' : '1d10') : (ctx.mods.beastRage ? '1d8' : '1d6');

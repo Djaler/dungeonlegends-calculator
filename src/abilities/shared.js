@@ -1,4 +1,4 @@
-import { rollNotation, attackRoll, isHit, resolveMode, sumDice } from '../engine.js';
+import { rollNotation, attackRoll, isHit, resolveModeFor, sumDice } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -16,7 +16,7 @@ export function multiWeaponAttack(ctx, plan) {
   if (n === 0 || !plan || plan.length === 0) return out;
   const m = ctx.mods;
   const seq = m.bonusAttack ? [...plan, plan[0]] : plan;
-  const mode = resolveMode(m.adv || m.sneak, m.dis); // скрытная атака даёт преимущество
+  const advFlag = m.adv || m.sneak; // скрытная атака даёт преимущество
   const rageF = m.barbRage ? 2 : 1;
   const extra = (m.runeOfWarrior ? 1 : 0) + (m.sacredWeapon || 0);
   const statBonus = ctx.attackBonus(ctx.weapon.stat) * rageF;
@@ -31,6 +31,7 @@ export function multiWeaponAttack(ctx, plan) {
   let ricochetPacket = null;    // пакет того самого выстрела — дублируется только он
 
   for (const idx of seq) {
+    const mode = resolveModeFor(advFlag, m.dis, ctx.targets[idx]);
     const baseAc = ctx.targets[idx].ac - acIgnore;
     const ac = acIgnore > 0 ? Math.max(10, baseAc) : ctx.targets[idx].ac;
     let hit, crit = false;

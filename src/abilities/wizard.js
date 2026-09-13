@@ -1,4 +1,4 @@
-import { rollDie, sumDice, attackRoll, isHit, resolveMode } from '../engine.js';
+import { rollDie, sumDice, attackRoll, isHit, resolveModeFor } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -7,7 +7,7 @@ function empty(n) { return Array.from({ length: n }, () => []); }
 // stat — характеристика броска; addStat добавляет её же к урону (владение оружием).
 function singleAttack(ctx, index, sides, type, stat, addStat) {
   const out = empty(ctx.targets.length);
-  const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+  const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[index]);
   const bonus = ctx.attackBonus(stat);
   const nat = attackRoll(ctx.rng, mode);
   const { hit, crit } = isHit(nat, bonus, ctx.targets[index].ac, ctx.critRange, ctx.fumbleRange);
@@ -78,13 +78,14 @@ export const WIZARD_ABILITIES = [
       const n = ctx.targets.length;
       const out = empty(n);
       if (n === 0) return out;
-      const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+      // Режим считается по каждой цели: молния прыгает по разным противникам.
+      const modeFor = (i) => resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const boltAmount = (isCrit) => sumDice(isCrit ? 4 : 2, 6, ctx.rng, ctx.mods.orcReroll);
       const seq = ctx.params.order;
       if (seq && seq.length) {
         out[seq[0]].push({ type: 'lightning', amount: boltAmount(false) }); // авто, не крит
         for (let i = 1; i < seq.length; i++) {
-          const nat = attackRoll(ctx.rng, mode);
+          const nat = attackRoll(ctx.rng, modeFor(seq[i]));
           const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac, ctx.critRange, ctx.fumbleRange);
           if (!hit) break;
           out[seq[i]].push({ type: 'lightning', amount: boltAmount(crit) });
@@ -101,7 +102,7 @@ export const WIZARD_ABILITIES = [
           if (j === prev) continue;
           if (next < 0 || ctx.targets[j].ac < ctx.targets[next].ac) next = j;
         }
-        const nat = attackRoll(ctx.rng, mode);
+        const nat = attackRoll(ctx.rng, modeFor(next));
         const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[next].ac, ctx.critRange, ctx.fumbleRange);
         if (!hit) break;
         out[next].push({ type: 'lightning', amount: boltAmount(crit) });

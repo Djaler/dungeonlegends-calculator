@@ -34,6 +34,13 @@ export function resolveMode(adv, dis) {
   return 'none';
 }
 
+// Режим броска по конкретной цели: к общим флагам хода добавляются состояния цели
+// (скованный, окружённый, лежачий, дуэль) — у разных целей они разные.
+export function resolveModeFor(adv, dis, target) {
+  const t = target || {};
+  return resolveMode(!!adv || !!t.adv, !!dis || !!t.dis);
+}
+
 export function attackRoll(rng, mode) {
   if (mode === 'none') return d20(rng);
   const a = d20(rng), b = d20(rng);
