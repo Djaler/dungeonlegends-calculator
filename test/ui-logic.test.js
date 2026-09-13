@@ -176,6 +176,17 @@ test('modifierRelevance: Талант только с 16 игры', () => {
   assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 12 }).talent, false);
 });
 
+test('modifierRelevance: Талант скрыт там, где нет ни одного броска', () => {
+  const ch = { classKey: 'wizard', game: 16, game12Choice: 'unknownAttack' };
+  const unknown = availableAbilities(ch).find((a) => a.id === 'unknownAttack');
+  const fb = availableAbilities(ch).find((a) => a.id === 'fireball');
+  assert.equal(modifierRelevance(unknown, ch).talent, false); // ровно 15, без бросков
+  assert.equal(modifierRelevance(fb, ch).talent, true);       // 6д6 — есть куда приложить
+  const dwarf = { classKey: 'wizard', raceKey: 'dwarf', game: 16, game12Choice: null };
+  const headbutt = availableAbilities(dwarf).find((a) => a.id === 'dwarfHeadbutt');
+  assert.equal(modifierRelevance(headbutt, dwarf).talent, false); // ровно 6, без бросков
+});
+
 test('modifierRelevance: runeOfElements — true только когда артефакт выбран', () => {
   const fb = availableAbilities({ classKey: 'wizard', game: 1, game12Choice: null }).find((a) => a.id === 'fireball');
   assert.equal(modifierRelevance(fb, { classKey: 'wizard', game: 1, artifacts: [] }).runeOfElements, false);

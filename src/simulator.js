@@ -1,5 +1,13 @@
-import { makeRng } from './engine.js';
+import { makeRng, talentDamageBonus } from './engine.js';
 import { applyPipeline } from './modifiers.js';
+
+// Неизрасходованный Талант добавляется к первой цели, получившей урон.
+function addTalentDamage(ctx, packets) {
+  const bonus = talentDamageBonus(ctx);
+  if (!bonus) return;
+  const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
+  if (idx >= 0) packets[idx].push({ type: packets[idx][0].type, amount: bonus });
+}
 
 export function runAbility(ability, baseCtx, opts) {
   const trials = opts.trials;
@@ -18,7 +26,10 @@ export function runAbility(ability, baseCtx, opts) {
   for (let t = 0; t < trials; t++) {
     const ctx = { ...baseCtx, rng };
     ctx.attackBonus = (stat) => (ctx.stats ? ctx.stats[stat] : 0);
+    // Талант — одна реакция на ход: сначала пробует спасти попадание, остаток идёт в урон.
+    ctx.talent = baseCtx.mods && baseCtx.mods.talent ? { left: 1, tally: [] } : null;
     const packets = ability.simulateOnce(ctx);
+    addTalentDamage(ctx, packets);
     if (resolveAbility) {
       // Решительность (человек): второе действие за ход — своей способностью
       // и со своими параметрами; его урон делится пополам.

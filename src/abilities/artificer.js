@@ -1,11 +1,11 @@
-import { attackRoll, isHit, resolveModeFor, rollNotation, rollDie, sumDice } from '../engine.js';
+import { attackRoll, isHitWithTalent, resolveModeFor, rollNotation, rollDie, sumDice, talentTally } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
 
 // Кубы урона с удвоением на крите.
 function dmgDice(notation, ctx, crit) {
-  const one = () => rollNotation(notation, ctx.rng, ctx.mods.orcReroll);
+  const one = () => rollNotation(notation, ctx.rng, ctx.mods.orcReroll, talentTally(ctx));
   return crit ? one() + one() : one();
 }
 
@@ -28,7 +28,7 @@ export const ARTIFICER_ABILITIES = [
       const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
       const nat = attackRoll(ctx.rng, mode);
-      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);
+      const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[i].ac);
       // болт без стата к урону (стат-мультипликатор урона вне данной модели)
       if (hit) out[i].push({ type: 'physical', amount: dmgDice(die, ctx, crit) + ctx.attackBonus('dex') });
       return out;
@@ -42,7 +42,7 @@ export const ARTIFICER_ABILITIES = [
       const out = empty(ctx.targets.length);
       // 2d6 огнём по всем целям (авто, без броска атаки)
       for (let i = 0; i < ctx.targets.length; i++) {
-        out[i].push({ type: 'fire', amount: sumDice(2, 6, ctx.rng, ctx.mods.orcReroll) });
+        out[i].push({ type: 'fire', amount: sumDice(2, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
       }
       return out;
     },
@@ -59,7 +59,7 @@ export const ARTIFICER_ABILITIES = [
       const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
       const nat = attackRoll(ctx.rng, mode);
-      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);
+      const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[i].ac);
       // 1д6 урона; «сбивает с ног» вне модели урона
       if (hit) out[i].push({ type: 'physical', amount: dmgDice('1d6', ctx, crit) + bonus });
       return out;
@@ -75,7 +75,7 @@ export const ARTIFICER_ABILITIES = [
       // 1 → 2d4 огнём всем целям; 2–4 → без урона (броня−/броня+/лечение вне модели урона)
       if (roll === 1) {
         for (let i = 0; i < ctx.targets.length; i++) {
-          out[i].push({ type: 'fire', amount: sumDice(2, 4, ctx.rng, ctx.mods.orcReroll) });
+          out[i].push({ type: 'fire', amount: sumDice(2, 4, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
         }
       }
       return out;

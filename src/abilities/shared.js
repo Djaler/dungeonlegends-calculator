@@ -1,12 +1,6 @@
-import { rollNotation, attackRoll, isHit, resolveModeFor, sumDice } from '../engine.js';
+import { rollNotation, attackRoll, isHitWithTalent, resolveModeFor, sumDice, talentTally } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
-
-// Максимум нотации 'NdS' — потолок для Таланта.
-function maxRoll(notation) {
-  const m = /^(\d+)d(\d+)$/.exec(notation);
-  return m ? Number(m[1]) * Number(m[2]) : 0;
-}
 
 // Универсальная атака оружием по плану целей (по одной атаке на элемент plan).
 // Все сквозные боевые модификаторы централизованы здесь.
@@ -37,29 +31,26 @@ export function multiWeaponAttack(ctx, plan) {
     let hit, crit = false;
     if (firstStrike && m.luckyCrit) {
       const nat = attackRoll(ctx.rng, mode);
-      const r = isHit(nat, hitBonus, ac, ctx.critRange, ctx.fumbleRange);
+      const r = isHitWithTalent(ctx, nat, hitBonus, ac);
       if (r.hit) { hit = true; crit = r.crit; }   // попал обычно (или сам по себе крит)
       else { hit = true; crit = true; }            // промах -> считаем критом
     }
     else if (firstStrike && m.guaranteedHit) { hit = true; }
     else {
       const nat = attackRoll(ctx.rng, mode);
-      let r = isHit(nat, hitBonus, ac, ctx.critRange, ctx.fumbleRange);
+      let r = isHitWithTalent(ctx, nat, hitBonus, ac);
       // Кроличья лапка: перебросить неудачный д20 (один раз за ход).
       if (!r.hit && firstStrike && m.rabbitFoot) {
-        r = isHit(attackRoll(ctx.rng, mode), hitBonus, ac, ctx.critRange, ctx.fumbleRange);
+        r = isHitWithTalent(ctx, attackRoll(ctx.rng, mode), hitBonus, ac);
       }
       hit = r.hit; crit = r.crit;
     }
     if (hit) {
       const d = ctx.weapon.dice;
       const rollWeapon = (isCrit) => isCrit
-        ? rollNotation(d, ctx.rng, m.orcReroll) + rollNotation(d, ctx.rng, m.orcReroll)
-        : rollNotation(d, ctx.rng, m.orcReroll);
-      let weaponRoll = rollWeapon(crit);
-      // Талант 16-й игры: +3 к броску куба, но не выше его максимума. Тратится на один удар.
-      if (m.talent && firstStrike) weaponRoll = Math.min(weaponRoll + 3, maxRoll(d) * (crit ? 2 : 1));
-      let amount = weaponRoll + statBonus + extra + dmgFlat;
+        ? rollNotation(d, ctx.rng, m.orcReroll, talentTally(ctx)) + rollNotation(d, ctx.rng, m.orcReroll, talentTally(ctx))
+        : rollNotation(d, ctx.rng, m.orcReroll, talentTally(ctx));
+      let amount = rollWeapon(crit) + statBonus + extra + dmgFlat;
       // скрытная атака: +ещё один стат оружия (вместо ловкости — удвоенная); только на первом ударе
       if (m.sneak && firstStrike) {
         amount += ctx.attackBonus(ctx.weapon.stat);
@@ -68,7 +59,7 @@ export function multiWeaponAttack(ctx, plan) {
       out[idx].push({ type, amount });
       if (ricochetSource < 0) { ricochetSource = idx; ricochetPacket = { type, amount }; }
       if (!firstHitDone && (m.smiteDice || 0) > 0) {
-        out[idx].push({ type: 'radiant', amount: sumDice(crit ? 2 * m.smiteDice : m.smiteDice, 10, ctx.rng, m.orcReroll) });
+        out[idx].push({ type: 'radiant', amount: sumDice(crit ? 2 * m.smiteDice : m.smiteDice, 10, ctx.rng, m.orcReroll, talentTally(ctx)) });
         firstHitDone = true;
       }
     }

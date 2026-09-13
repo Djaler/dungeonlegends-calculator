@@ -134,21 +134,6 @@ test('ricochet дублирует ровно один выстрел, а не в
   ]);
 });
 
-test('Талант: +3 к броску куба, но не выше его максимума', () => {
-  // d10 0.5->6, +3 =9, влезает под потолок 10; +str 3 = 12
-  const low = multiWeaponAttack(ctx({ rng: seqRng([0.5, 0.5]), mods: { talent: true } }), [0]);
-  assert.deepEqual(low, [[{ type: 'physical', amount: 12 }]]);
-  // d10 0.99->10, +3 упёрлось бы в 13, но потолок куба 10; +str 3 = 13
-  const cap = multiWeaponAttack(ctx({ rng: seqRng([0.5, 0.99]), mods: { talent: true } }), [0]);
-  assert.deepEqual(cap, [[{ type: 'physical', amount: 13 }]]);
-});
-
-test('Талант тратится только на первый удар', () => {
-  // две атаки, обе d10 0.5->6: первая получает +3 (=9+3стат=12), вторая нет (6+3=9)
-  const p = multiWeaponAttack(ctx({ rng: seqRng([0.5, 0.5, 0.5, 0.5]), mods: { talent: true } }), [0, 0]);
-  assert.deepEqual(p, [[{ type: 'physical', amount: 12 }, { type: 'physical', amount: 9 }]]);
-});
-
 test('Гениальность добавляет бонус к броску атаки', () => {
   // nat 11 + str 3 = 14 < ac 16 промах; с гениальностью +3 -> 17 попадание
   const miss = multiWeaponAttack(ctx({ rng: seqRng([0.5]), targets: [{ ac: 16, hp: 30 }] }), [0]);

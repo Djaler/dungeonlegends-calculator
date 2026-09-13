@@ -143,8 +143,9 @@ export function modifierRelevance(ability, character) {
     smiteDice: cls === 'paladin' || (c.artifacts || []).includes('paladinSymbol'),
     // Гениальность изобретателя и его браслет: союзник добавляет свой Интеллект к атаке.
     genius: !!ability.usesAttackRoll,
-    // Талант 16-й игры: +3 к броску куба урона, но не выше грани куба.
-    talent: c.game >= 16,
+    // Талант 16-й игры: +3 к броску куба. Способностям без единого броска
+    // (фиксированный урон и без атаки) его приложить некуда.
+    talent: c.game >= 16 && (!!ability.usesAttackRoll || !ability.fixedDamage),
     // Кроличья лапка: перебросить неудачный д20.
     rabbitFoot: !!ability.usesAttackRoll && (c.artifacts || []).includes('rabbitFoot'),
     guaranteedHit: cls === 'ranger' || c.raceKey === 'elf',

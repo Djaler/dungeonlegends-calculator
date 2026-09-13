@@ -1,4 +1,4 @@
-import { attackRoll, isHit, resolveMode, rollNotation, d20, sumDice } from '../engine.js';
+import { attackRoll, isHitWithTalent, rollNotation, d20, sumDice, talentTally } from '../engine.js';
 
 function empty(n) {
   return Array.from({ length: n }, () => []);
@@ -32,7 +32,7 @@ export const NECRO_ABILITIES = [
       for (let i = 0; i < ctx.targets.length; i++) {
         out[i].push({
           type: 'necrotic',
-          amount: rollNotation('1d8', ctx.rng, ctx.mods.orcReroll) + int,
+          amount: rollNotation('1d8', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) + int,
         });
       }
       return out;
@@ -57,7 +57,7 @@ export const NECRO_ABILITIES = [
       const nat = d20(ctx.rng);
       out[i].push({
         type: 'necrotic',
-        amount: rollNotation(bellDice(nat), ctx.rng, ctx.mods.orcReroll),
+        amount: rollNotation(bellDice(nat), ctx.rng, ctx.mods.orcReroll, talentTally(ctx)),
       });
       return out;
     },
@@ -88,7 +88,7 @@ export const NECRO_ABILITIES = [
         if (!saved) {
           out[i].push({
             type: 'necrotic',
-            amount: rollNotation('1d10', ctx.rng, ctx.mods.orcReroll),
+            amount: rollNotation('1d10', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)),
           });
         }
       }

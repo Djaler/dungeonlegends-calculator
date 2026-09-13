@@ -72,6 +72,22 @@ test('Решительность: killCount учитывает оба дейст
   assert.equal(miss.killCount[0], 0);
 });
 
+test('Талант в прогоне: поднимает низший куб урона и обновляется каждый ход', async () => {
+  const { ABILITIES } = await import('../src/abilities/index.js');
+  const fb = ABILITIES.find((x) => x.id === 'fireball');
+  const ctxFor = (talent) => ({
+    ...baseCtx({ targets: [{ ac: 10, hp: 999, saves: { dex: -20 } }] }),
+    stats: { int: 0 }, attackBonus: () => 0, critRange: 20, fumbleRange: 1,
+    weapon: { dice: '1d4', stat: 'dex' },
+    mods: { ...baseCtx({}).mods, talent },
+  });
+  const off = runAbility(fb, ctxFor(false), { trials: 20000, seed: 5 });
+  const on = runAbility(fb, ctxFor(true), { trials: 20000, seed: 5 });
+  const gain = on.groupMean - off.groupMean;
+  // Талант каждый ход поднимает самый низкий из 6д6: почти всегда полные +3
+  assert.ok(gain > 2.5 && gain < 3.05, `прирост ${gain.toFixed(2)} вне ожидаемого 2.5..3.05`);
+});
+
 test('runAbility отдаёт распределение по каждой цели', () => {
   // две цели с фиксированным уроном 7 и 3 -> у каждой свой одноточечный freq
   const ability = {

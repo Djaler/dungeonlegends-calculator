@@ -1,4 +1,4 @@
-import { rollNotation } from '../engine.js';
+import { rollNotation, talentTally } from '../engine.js';
 
 // Вспомогательная функция: создаёт массив пустых массивов для целей.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -13,7 +13,7 @@ export const CLERIC_ABILITIES = [
       const out = empty(ctx.targets.length);
       const con = ctx.attackBonus('con');
       for (let i = 0; i < ctx.targets.length; i++) {
-        out[i].push({ type: 'radiant', amount: rollNotation('1d4', ctx.rng, ctx.mods.orcReroll) + con });
+        out[i].push({ type: 'radiant', amount: rollNotation('1d4', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) + con });
       }
       return out;
     },

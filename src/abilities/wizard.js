@@ -1,4 +1,4 @@
-import { rollDie, sumDice, attackRoll, isHit, resolveModeFor } from '../engine.js';
+import { rollDie, sumDice, attackRoll, isHitWithTalent, resolveModeFor, talentTally } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -10,11 +10,11 @@ function singleAttack(ctx, index, sides, type, stat, addStat) {
   const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[index]);
   const bonus = ctx.attackBonus(stat);
   const nat = attackRoll(ctx.rng, mode);
-  const { hit, crit } = isHit(nat, bonus, ctx.targets[index].ac, ctx.critRange, ctx.fumbleRange);
+  const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[index].ac);
   if (hit) {
     const amount = crit
-      ? rollDie(sides, ctx.rng, ctx.mods.orcReroll) + rollDie(sides, ctx.rng, ctx.mods.orcReroll)
-      : rollDie(sides, ctx.rng, ctx.mods.orcReroll);
+      ? rollDie(sides, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) + rollDie(sides, ctx.rng, ctx.mods.orcReroll, talentTally(ctx))
+      : rollDie(sides, ctx.rng, ctx.mods.orcReroll, talentTally(ctx));
     out[index].push({ type, amount: amount + (addStat ? bonus : 0) });
   }
   return out;
@@ -31,7 +31,7 @@ export const WIZARD_ABILITIES = [
       const out = empty(n);
       if (n === 0) return out;
       const plan = ctx.params.distribute || Array.from({ length: 3 }, (_, i) => i % n);
-      for (const t of plan) out[t].push({ type: 'magic', amount: rollDie(4, ctx.rng, ctx.mods.orcReroll) + 1 });
+      for (const t of plan) out[t].push({ type: 'magic', amount: rollDie(4, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) + 1 });
       return out;
     },
   },
@@ -63,7 +63,7 @@ export const WIZARD_ABILITIES = [
         const saveBonus = (ctx.targets[i].saves && ctx.targets[i].saves.dex) || 0;
         const nat = attackRoll(ctx.rng, mode);
         const saved = nat !== 1 && (nat === 20 || nat + saveBonus >= 15);
-        const full = sumDice(6, 6, ctx.rng, ctx.mods.orcReroll);
+        const full = sumDice(6, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx));
         out[i].push({ type: 'fire', amount: saved ? Math.floor(full / 2) : full });
       }
       return out;
@@ -80,13 +80,13 @@ export const WIZARD_ABILITIES = [
       if (n === 0) return out;
       // Режим считается по каждой цели: молния прыгает по разным противникам.
       const modeFor = (i) => resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
-      const boltAmount = (isCrit) => sumDice(isCrit ? 4 : 2, 6, ctx.rng, ctx.mods.orcReroll);
+      const boltAmount = (isCrit) => sumDice(isCrit ? 4 : 2, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx));
       const seq = ctx.params.order;
       if (seq && seq.length) {
         out[seq[0]].push({ type: 'lightning', amount: boltAmount(false) }); // авто, не крит
         for (let i = 1; i < seq.length; i++) {
           const nat = attackRoll(ctx.rng, modeFor(seq[i]));
-          const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac, ctx.critRange, ctx.fumbleRange);
+          const { hit, crit } = isHitWithTalent(ctx, nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac);
           if (!hit) break;
           out[seq[i]].push({ type: 'lightning', amount: boltAmount(crit) });
         }
@@ -103,7 +103,7 @@ export const WIZARD_ABILITIES = [
           if (next < 0 || ctx.targets[j].ac < ctx.targets[next].ac) next = j;
         }
         const nat = attackRoll(ctx.rng, modeFor(next));
-        const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[next].ac, ctx.critRange, ctx.fumbleRange);
+        const { hit, crit } = isHitWithTalent(ctx, nat, ctx.attackBonus('int'), ctx.targets[next].ac);
         if (!hit) break;
         out[next].push({ type: 'lightning', amount: boltAmount(crit) });
         prev = next;
@@ -115,6 +115,7 @@ export const WIZARD_ABILITIES = [
     id: 'unknownAttack', name: 'Неизвестная атака', classKey: 'wizard',
     minGame: 12, choiceGroup: 'game12', charges: '2 раза в день', targeting: 'single',
     usesAttackRoll: false, usesSave: false, category: 'magic',
+    fixedDamage: true, // ровно 15, ни одного броска — Таланту не к чему приложиться
     params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
     simulateOnce(ctx) {
       // Выбранная цель получает ровно 15 урона типа psychic

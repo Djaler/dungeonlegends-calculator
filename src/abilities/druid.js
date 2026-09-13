@@ -1,11 +1,11 @@
-import { attackRoll, isHit, resolveModeFor, rollNotation } from '../engine.js';
+import { attackRoll, isHitWithTalent, resolveModeFor, rollNotation, talentTally } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
 
 // Кубы урона с удвоением на крите (как в shared/wizard).
 function dmgDice(notation, ctx, crit) {
-  const one = () => rollNotation(notation, ctx.rng, ctx.mods.orcReroll);
+  const one = () => rollNotation(notation, ctx.rng, ctx.mods.orcReroll, talentTally(ctx));
   return crit ? one() + one() : one();
 }
 
@@ -30,7 +30,7 @@ export const DRUID_ABILITIES = [
       const attacks = bear ? 2 : 1; // змеиный урон повторяется 2 хода — учитываем только немедленный
       for (let a = 0; a < attacks; a++) {
         const nat = attackRoll(ctx.rng, mode);
-        const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);
+        const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[i].ac);
         if (hit) out[i].push({ type: 'physical', amount: dmgDice(die, ctx, crit) + bonus });
       }
       return out;
@@ -42,7 +42,7 @@ export const DRUID_ABILITIES = [
     usesAttackRoll: false, usesSave: false, category: 'physical', params: [],
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
-      for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'physical', amount: rollNotation('3d6', ctx.rng, ctx.mods.orcReroll) });
+      for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'physical', amount: rollNotation('3d6', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
       return out;
     },
   },

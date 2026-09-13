@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeRng, rollDie, sumDice, d20, resolveMode, attackRoll, isHit, CRIT_DOUBLES_DICE, rollNotation } from '../src/engine.js';
+import { makeRng, rollDie, sumDice, d20, resolveMode, attackRoll, isHit, CRIT_DOUBLES_DICE, rollNotation,
+  isHitWithTalent, talentDamageBonus } from '../src/engine.js';
 import { seqRng } from './helpers.js';
 
 test('makeRng детерминирован по зерну', () => {
@@ -66,6 +67,61 @@ test('attackRoll dis берёт минимум двух d20', () => {
 
 test('isHit: нат.20 — крит', () => {
   assert.deepEqual(isHit(20, -5, 99), { hit: true, crit: true });
+});
+
+const talentCtx = () => ({ critRange: 20, fumbleRange: 1, talent: { left: 1, tally: [] } });
+
+test('Талант: тратится на попадание, только если решает исход', () => {
+  // nat 11 + 4 = 15 против КБ 17 — промах; с +3 получается 18, талант спасает
+  const ctx = talentCtx();
+  assert.deepEqual(isHitWithTalent(ctx, 11, 4, 17), { hit: true, crit: false });
+  assert.equal(ctx.talent.left, 0);
+});
+
+test('Талант: не тратится, если попадание проходит и без него', () => {
+  const ctx = talentCtx();
+  assert.deepEqual(isHitWithTalent(ctx, 11, 4, 12), { hit: true, crit: false });
+  assert.equal(ctx.talent.left, 1);
+});
+
+test('Талант: не тратится, если не спасает даже с ним', () => {
+  const ctx = talentCtx();
+  assert.deepEqual(isHitWithTalent(ctx, 5, 0, 25), { hit: false, crit: false });
+  assert.equal(ctx.talent.left, 1);
+});
+
+test('Талант: не спасает критическую неудачу', () => {
+  const ctx = talentCtx();
+  assert.deepEqual(isHitWithTalent(ctx, 1, 20, 5), { hit: false, crit: false });
+  assert.equal(ctx.talent.left, 1);
+});
+
+test('Талант: доведя бросок до 20, не делает его критом', () => {
+  const ctx = talentCtx();
+  const r = isHitWithTalent(ctx, 18, 0, 20); // 18+3=21 -> 20, попадание, но не крит
+  assert.deepEqual(r, { hit: true, crit: false });
+});
+
+test('Талант: остаток уходит в самый низкий куб урона', () => {
+  const ctx = { talent: { left: 1, tally: [{ sides: 6, roll: 5 }, { sides: 6, roll: 2 }, { sides: 6, roll: 4 }] } };
+  // низший куб 2 -> min(5,6)=5, выигрыш 3; у куба 5 выигрыш был бы всего 1
+  assert.equal(talentDamageBonus(ctx), 3);
+  assert.equal(ctx.talent.left, 0);
+});
+
+test('Талант: потолок грани ограничивает прибавку', () => {
+  const ctx = { talent: { left: 1, tally: [{ sides: 4, roll: 3 }] } };
+  assert.equal(talentDamageBonus(ctx), 1); // min(3+3,4)=4
+});
+
+test('Талант: потраченный на попадание в урон не идёт', () => {
+  const ctx = { talent: { left: 0, tally: [{ sides: 6, roll: 1 }] } };
+  assert.equal(talentDamageBonus(ctx), 0);
+});
+
+test('Талант: без единого броска давать нечего', () => {
+  const ctx = { talent: { left: 1, tally: [] } };
+  assert.equal(talentDamageBonus(ctx), 0);
 });
 
 test('isHit: fumbleRange 2 делает двойку промахом («Злой рок» человека)', () => {
