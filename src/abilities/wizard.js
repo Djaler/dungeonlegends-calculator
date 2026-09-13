@@ -3,17 +3,19 @@ import { rollDie, sumDice, attackRoll, isHit, resolveMode } from '../engine.js';
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
 
-// Одиночная атака д20+attackBonus по цели index; при попадании — пакет.
-function singleAttack(ctx, index, sides, type) {
+// Одиночная атака д20+стат по цели index; при попадании — пакет.
+// stat — характеристика броска; addStat добавляет её же к урону (владение оружием).
+function singleAttack(ctx, index, sides, type, stat, addStat) {
   const out = empty(ctx.targets.length);
   const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+  const bonus = ctx.attackBonus(stat);
   const nat = attackRoll(ctx.rng, mode);
-  const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[index].ac, ctx.critRange);
+  const { hit, crit } = isHit(nat, bonus, ctx.targets[index].ac, ctx.critRange);
   if (hit) {
     const amount = crit
       ? rollDie(sides, ctx.rng, ctx.mods.orcReroll) + rollDie(sides, ctx.rng, ctx.mods.orcReroll)
       : rollDie(sides, ctx.rng, ctx.mods.orcReroll);
-    out[index].push({ type, amount });
+    out[index].push({ type, amount: amount + (addStat ? bonus : 0) });
   }
   return out;
 }
@@ -38,14 +40,16 @@ export const WIZARD_ABILITIES = [
     usesAttackRoll: true, usesSave: false, category: 'physical',
     minGame: 1, choiceGroup: null, charges: 'без ограничений', targeting: 'single',
     params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
-    simulateOnce(ctx) { return singleAttack(ctx, ctx.params.target ?? 0, 4, 'physical'); },
+    // Посох — оружие «требует ловкость»: владение даёт стат оружия к атаке и урону.
+    simulateOnce(ctx) { return singleAttack(ctx, ctx.params.target ?? 0, 4, 'physical', ctx.weapon.stat, true); },
   },
   {
     id: 'telekinesis', name: 'Телекинез (атака)', classKey: 'wizard',
     usesAttackRoll: true, usesSave: false, category: 'magic',
     minGame: 1, choiceGroup: null, charges: 'без ограничений', targeting: 'single',
     params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
-    simulateOnce(ctx) { return singleAttack(ctx, ctx.params.target ?? 0, 4, 'magic'); },
+    // Телекинез — не оружие: бросок по Интеллекту, стат к урону не прибавляется.
+    simulateOnce(ctx) { return singleAttack(ctx, ctx.params.target ?? 0, 4, 'magic', 'int', false); },
   },
   {
     id: 'fireball', name: 'Огненный шар', classKey: 'wizard',

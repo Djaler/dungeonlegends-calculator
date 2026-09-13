@@ -56,11 +56,23 @@ test('fireball: спасбросок берёт ловкость каждой ц
 });
 
 test('staff: попадание 1д4 physical по выбранной цели, промах — пусто', () => {
-  // nat=floor(0.5*20)+1=11 -> обычное попадание (не крит); d4 0.5->3
-  const hit = get('staff').simulateOnce(ctx({ rng: seqRng([0.5, 0.5]) }));
+  // посох — оружие на ловкость: dex=0, ac=12 -> нужен nat>=12. 0.7->15, попал; d4 0.5->3
+  const hit = get('staff').simulateOnce(ctx({ rng: seqRng([0.7, 0.5]) }));
   assert.deepEqual(hit, [[{ type: 'physical', amount: 3 }]]);
   const miss = get('staff').simulateOnce(ctx({ rng: seqRng([0]) }));
   assert.deepEqual(miss, [[]]);
+});
+
+test('staff бьёт по стату оружия (ловкость), а не по Интеллекту', () => {
+  // nat 11 при dex 0 против ac 12 — промах. По Интеллекту (+4) это было бы попаданием.
+  const p = get('staff').simulateOnce(ctx({ rng: seqRng([0.5]) }));
+  assert.deepEqual(p, [[]]);
+});
+
+test('telekinesis бьёт по Интеллекту и не добавляет стат к урону', () => {
+  // nat 11 + int 4 = 15 >= ac 12 -> попал; d4 0.5->3, без прибавки стата
+  const p = get('telekinesis').simulateOnce(ctx({ rng: seqRng([0.5, 0.5]) }));
+  assert.deepEqual(p, [[{ type: 'magic', amount: 3 }]]);
 });
 
 test('chainLightning: цель 0 авто 2д6 lightning, цепь рвётся на промахе', () => {

@@ -40,3 +40,20 @@ test('Жатва: провал спасброска -> 1d10', () => {
   const p = get('harvest').simulateOnce(nctx({ rng: seqRng([0, 0.99]), targets: [{ ac: 10, hp: 99, saves: { con: 0 } }] }));
   assert.deepEqual(p, [[{ type: 'necrotic', amount: 10 }]]);
 });
+
+test('Жатва берёт не больше 3 целей', () => {
+  // 5 целей, но бросков хватает ровно на три (провал + 1d10 на каждую):
+  // четвёртая и пятая не трогаются, иначе seqRng исчерпался бы.
+  const t = { ac: 10, hp: 99, saves: { con: 0 } };
+  const p = get('harvest').simulateOnce(nctx({
+    rng: seqRng([0, 0.99, 0, 0.99, 0, 0.99]),
+    targets: [t, t, t, t, t],
+  }));
+  assert.deepEqual(p, [
+    [{ type: 'necrotic', amount: 10 }],
+    [{ type: 'necrotic', amount: 10 }],
+    [{ type: 'necrotic', amount: 10 }],
+    [],
+    [],
+  ]);
+});

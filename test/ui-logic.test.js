@@ -150,22 +150,20 @@ test('modifierRelevance: runeOfWarrior — true только когда арте
   assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 1, artifacts: ['runeOfWarrior'] }).runeOfWarrior, true);
 });
 
-test('modifierRelevance: tincture — true только для барда', () => {
+test('modifierRelevance: настойку пьёт кто угодно, не только бард', () => {
+  // Бард её варит, но эффект получает выпивший — и артефакт с 20 игры доступен всем.
   const fb = availableAbilities({ classKey: 'wizard', game: 1, game12Choice: null }).find((a) => a.id === 'fireball');
   const ba = availableAbilities({ classKey: 'warrior', game: 1, game12Choice: null })[0];
-  assert.equal(modifierRelevance(fb, { classKey: 'wizard', game: 1 }).tincture, false);
-  assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 1 }).tincture, false);
-  const bardAb = availableAbilities({ classKey: 'bard', game: 1, game12Choice: null })[0];
-  assert.equal(modifierRelevance(bardAb, { classKey: 'bard', game: 1 }).tincture, true);
+  assert.equal(modifierRelevance(fb, { classKey: 'wizard', raceKey: 'orc', game: 1 }).tincture, true);
+  assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 1 }).tincture, true);
 });
 
-test('modifierRelevance: inspiration — true только для барда с game>=4', () => {
-  const bardAb = availableAbilities({ classKey: 'bard', game: 1, game12Choice: null })[0];
-  const bardAb4 = availableAbilities({ classKey: 'bard', game: 4, game12Choice: null })[0];
-  assert.equal(modifierRelevance(bardAb, { classKey: 'bard', game: 1 }).inspiration, false);
-  assert.equal(modifierRelevance(bardAb4, { classKey: 'bard', game: 4 }).inspiration, true);
-  const fb = availableAbilities({ classKey: 'wizard', game: 4, game12Choice: null }).find((a) => a.id === 'fireball');
-  assert.equal(modifierRelevance(fb, { classKey: 'wizard', game: 4 }).inspiration, false);
+test('modifierRelevance: воодушевление доступно союзнику любого класса и игры', () => {
+  // «Выберите до пяти существ» — получатели союзники; игра барда, а не получателя.
+  const fb = availableAbilities({ classKey: 'wizard', game: 1, game12Choice: null }).find((a) => a.id === 'fireball');
+  assert.equal(modifierRelevance(fb, { classKey: 'wizard', game: 1 }).inspiration, true);
+  const ba = availableAbilities({ classKey: 'warrior', game: 1, game12Choice: null })[0];
+  assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 1 }).inspiration, true);
 });
 
 test('modifierRelevance: sacredWeapon — true только для клерика', () => {

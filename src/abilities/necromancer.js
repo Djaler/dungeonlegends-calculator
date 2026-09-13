@@ -80,7 +80,9 @@ export const NECRO_ABILITIES = [
       // Финальный дальнобойный «выброс энергии» опускаем (вне модели урона v1).
       const out = empty(ctx.targets.length);
       const mode = ctx.mods.hex ? 'dis' : 'none';
-      for (let i = 0; i < ctx.targets.length; i++) {
+      // «Выберите до 3 целей» — дальше первых трёх жатва не идёт.
+      const reach = Math.min(3, ctx.targets.length);
+      for (let i = 0; i < reach; i++) {
         const nat = attackRoll(ctx.rng, mode);
         const saved = nat === 20 || (nat !== 1 && nat + ((ctx.targets[i].saves && ctx.targets[i].saves.con) || 0) >= 15);
         if (!saved) {

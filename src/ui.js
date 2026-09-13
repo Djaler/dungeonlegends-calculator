@@ -366,8 +366,8 @@ function initUI(root) {
       ['ricochet', 'Рикошет (+цель)', 'удар рикошетом по дополнительной цели'],
       ['giantHunter', 'Охотник на великанов (−КБ по Муд)', 'уменьшает КБ цели на значение Мудрости'],
       ['sacredWeapon', 'Священное оружие (+Ст)', '+значение Телосложения к урону оружием'],
-      ['inspiration', 'Воодушевление (+д6)', '+1d6 к первой цели с уроном'],
-      ['tincture', 'Настойка: смелость (×2)', 'удваивает весь урон за ход'],
+      ['inspiration', 'Воодушевление (+д6)', 'бард влил вам д6 к урону: +1d6 первой цели с уроном'],
+      ['tincture', 'Настойка: смелость (×2)', 'вы выпили настойку и выпало «3»: удваивает весь урон за ход'],
     ];
     document.getElementById('mods').innerHTML =
       '<div class="sigils">' + toggles.map(([k, l, hint]) => {
@@ -567,7 +567,7 @@ function initUI(root) {
         luckyCrit: !!(rel.luckyCrit && state.mods.luckyCrit),
         bonusAttack: !!(rel.bonusAttack && state.mods.bonusAttack),
         sneak: !!(rel.sneak && state.mods.sneak),
-        sneakDouble: !!(rel.sneak && state.mods.sneakDouble),
+        sneakDouble: !!(rel.sneakDouble && state.mods.sneakDouble),
         ricochet: !!(rel.ricochet && state.mods.ricochet),
         smiteDice: rel.smiteDice ? (state.mods.smiteDice || 0) : 0,
         acIgnore: (rel.acIgnore && state.mods.giantHunter) ? stats.wis : 0,

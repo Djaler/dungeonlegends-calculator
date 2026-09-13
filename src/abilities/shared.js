@@ -21,6 +21,7 @@ export function multiWeaponAttack(ctx, plan) {
   let firstHitDone = false;     // для смайта (один раз)
   let firstStrike = true;       // первый удар плана — для guaranteedHit/скрытной
   let ricochetSource = -1;      // индекс цели первого попадания (для рикошета)
+  let ricochetPacket = null;    // пакет того самого выстрела — дублируется только он
 
   for (const idx of seq) {
     const baseAc = ctx.targets[idx].ac - acIgnore;
@@ -46,7 +47,7 @@ export function multiWeaponAttack(ctx, plan) {
         if (m.sneakDouble) amount *= 2;
       }
       out[idx].push({ type, amount });
-      if (ricochetSource < 0) ricochetSource = idx;
+      if (ricochetSource < 0) { ricochetSource = idx; ricochetPacket = { type, amount }; }
       if (!firstHitDone && (m.smiteDice || 0) > 0) {
         out[idx].push({ type: 'radiant', amount: sumDice(crit ? 2 * m.smiteDice : m.smiteDice, 10, ctx.rng, m.orcReroll) });
         firstHitDone = true;
@@ -55,10 +56,11 @@ export function multiWeaponAttack(ctx, plan) {
     firstStrike = false;
   }
 
-  // Рикошет: продублировать суммарный урон первого попадания по следующей цели.
-  if (m.ricochet && ricochetSource >= 0 && n >= 2) {
+  // Рикошет: «перед одним из выстрелов выберите дополнительную цель, которая получит
+  // тот же урон» — дублируется ровно один выстрел, а не весь урон по цели за ход.
+  if (m.ricochet && ricochetPacket && n >= 2) {
     const dst = (ricochetSource + 1) % n;
-    for (const pkt of out[ricochetSource]) out[dst].push({ ...pkt });
+    out[dst].push({ ...ricochetPacket });
   }
   return out;
 }

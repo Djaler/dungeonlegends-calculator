@@ -120,6 +120,20 @@ test('ricochet дублирует урон первого попадания п�
   assert.deepEqual(p, [[{ type: 'physical', amount: 13 }], [{ type: 'physical', amount: 13 }]]);
 });
 
+test('ricochet дублирует ровно один выстрел, а не весь урон по цели за ход', () => {
+  // две атаки по цели 0: обе попали (nat 0.5), d10 0.99->13 каждая.
+  // рикошет копирует только первый выстрел -> цель 1 получает одну 13, а не 26.
+  const p = multiWeaponAttack(ctx({
+    rng: seqRng([0.5, 0.99, 0.5, 0.99]),
+    targets: [{ ac: 10, hp: 30 }, { ac: 10, hp: 30 }],
+    mods: { ricochet: true },
+  }), [0, 0]);
+  assert.deepEqual(p, [
+    [{ type: 'physical', amount: 13 }, { type: 'physical', amount: 13 }],
+    [{ type: 'physical', amount: 13 }],
+  ]);
+});
+
 test('промах не даёт пакета и не тратит смайт', () => {
   // nat=1 (0) промах; смайт не применяется (нет попадания)
   const p = multiWeaponAttack(ctx({ rng: seqRng([0]), mods: { smiteDice: 2 } }), [0]);

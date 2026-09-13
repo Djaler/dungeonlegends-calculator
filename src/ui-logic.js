@@ -131,8 +131,10 @@ export function modifierRelevance(ability, character) {
     runeOfWarrior: (c.artifacts || []).includes('runeOfWarrior'),
     runeOfElements: (c.artifacts || []).includes('runeOfElements'),
     sacredWeapon: cls === 'cleric',
-    tincture: cls === 'bard',
-    inspiration: cls === 'bard' && c.game >= 4,
+    // Настойку варит бард, а пьёт кто угодно; воодушевление бард раздаёт союзникам.
+    // Поэтому оба эффекта доступны любому классу (плюс существуют как артефакты).
+    tincture: true,
+    inspiration: true,
     beastRage: cls === 'druid' && c.game >= 12 && g12 === 'beastRage',
   };
 }
