@@ -389,14 +389,12 @@ function initUI(root) {
       }).join('') + '</div>'
       + ((c.artifacts || []).includes('runeOfElements') ? `
         <div class="int-row" style="margin-top:10px">
-          <div class="cap"><b>Руна стихий: тип урона</b><span>+1d6 и смена типа первой цели</span></div>
+          <div class="cap"><b>Руна стихий: тип урона</b><span>+1d6 и смена типа; физический и магический по-разному ложатся на слабости цели</span></div>
           <select data-runetype style="width:auto">
+            <option value="physical" ${(state.mods.runeType||'fire')==='physical'?'selected':''}>Физический</option>
+            <option value="magic" ${(state.mods.runeType||'fire')==='magic'?'selected':''}>Магический</option>
             <option value="fire" ${(state.mods.runeType||'fire')==='fire'?'selected':''}>Огонь</option>
-            <option value="lightning" ${(state.mods.runeType||'fire')==='lightning'?'selected':''}>Молния</option>
-            <option value="necrotic" ${(state.mods.runeType||'fire')==='necrotic'?'selected':''}>Некрот.</option>
-            <option value="psychic" ${(state.mods.runeType||'fire')==='psychic'?'selected':''}>Психика</option>
-            <option value="radiant" ${(state.mods.runeType||'fire')==='radiant'?'selected':''}>Сияние</option>
-            <option value="magic" ${(state.mods.runeType||'fire')==='magic'?'selected':''}>Магия</option>
+            <option value="radiant" ${(state.mods.runeType||'fire')==='radiant'?'selected':''}>Излучение</option>
           </select>
         </div>` : '')
       + (rel.humanResolve ? (() => {

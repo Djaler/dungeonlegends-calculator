@@ -49,7 +49,9 @@ function finalizeTarget(arr, target) {
   if (rule) {
     for (const cat of ['physical', 'magic']) {
       if (!rule[cat]) continue;
-      if (rule[cat].add != null) sums[cat] += rule[cat].add;
+      // Прибавка идёт «к магическому урону», а не вместо него: если урона этой
+      // категории не было (промах или удар другой категории), прибавлять не к чему.
+      if (rule[cat].add != null && sums[cat] > 0) sums[cat] += rule[cat].add;
       if (rule[cat].mult != null) sums[cat] = Math.floor(sums[cat] * rule[cat].mult);
     }
   }

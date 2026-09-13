@@ -93,6 +93,35 @@ test('воодушевление: +1д6 первой цели с уроном', 
   assert.deepEqual(out, [11]); // 5 + 6
 });
 
+test('расовая прибавка не начисляется на промах', () => {
+  // пакетов нет — прибавлять «+2 к магическому» не к чему
+  assert.equal(applyPipeline([[]], baseCtx({ targets: [{ race: 'orc' }] }))[0], 0);
+  assert.equal(applyPipeline([[]], baseCtx({ targets: [{ race: 'aasimar' }] }))[0], 0);
+});
+
+test('расовая прибавка не переходит на чужую категорию', () => {
+  // орк слаб к магии: чисто физический удар не должен получать +2
+  const orcPhys = applyPipeline([[{ type: 'physical', amount: 10 }]], baseCtx({ targets: [{ race: 'orc' }] }));
+  assert.equal(orcPhys[0], 10);
+  // а магический — должен
+  const orcMagic = applyPipeline([[{ type: 'magic', amount: 10 }]], baseCtx({ targets: [{ race: 'orc' }] }));
+  assert.equal(orcMagic[0], 12);
+  // аасимар зеркально: слаб к физическому
+  const aasMagic = applyPipeline([[{ type: 'magic', amount: 10 }]], baseCtx({ targets: [{ race: 'aasimar' }] }));
+  assert.equal(aasMagic[0], 10);
+  const aasPhys = applyPipeline([[{ type: 'physical', amount: 10 }]], baseCtx({ targets: [{ race: 'aasimar' }] }));
+  assert.equal(aasPhys[0], 12);
+});
+
+test('смешанный урон: прибавка идёт только своей категории', () => {
+  // по орку 10 физ + 10 маг: +2 только к магической половине
+  const out = applyPipeline(
+    [[{ type: 'physical', amount: 10 }, { type: 'magic', amount: 10 }]],
+    baseCtx({ targets: [{ race: 'orc' }] }),
+  );
+  assert.equal(out[0], 22);
+});
+
 test('Руна стихий: конверсия типа + 1д6', () => {
   // конвертим всё в radiant, +1д6 radiant. база physical 5 -> radiant 5; +6 =11 radiant
   const out = applyPipeline([[{type:'physical',amount:5}]], baseCtx({ rng: seqRng([0.99]), mods:{ runeOfElements:true, runeType:'radiant' } }));
