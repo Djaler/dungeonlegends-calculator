@@ -1,0 +1,121 @@
+import { rollDie, sumDice, attackRoll, isHit, resolveMode } from '../engine.js';
+
+// Пустые пакеты на каждую цель.
+function empty(n) { return Array.from({ length: n }, () => []); }
+
+// Одиночная атака д20+attackBonus по цели index; при попадании — пакет.
+function singleAttack(ctx, index, sides, type) {
+  const out = empty(ctx.targets.length);
+  const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+  const nat = attackRoll(ctx.rng, mode);
+  const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[index].ac, ctx.critRange);
+  if (hit) {
+    const amount = crit
+      ? rollDie(sides, ctx.rng, ctx.mods.orcReroll) + rollDie(sides, ctx.rng, ctx.mods.orcReroll)
+      : rollDie(sides, ctx.rng, ctx.mods.orcReroll);
+    out[index].push({ type, amount });
+  }
+  return out;
+}
+
+export const WIZARD_ABILITIES = [
+  {
+    id: 'magicMissiles', name: 'Волшебные снаряды', classKey: 'wizard',
+    usesAttackRoll: false, usesSave: false, category: 'magic',
+    minGame: 1, choiceGroup: null, charges: '3 раза в бой', targeting: 'area',
+    params: [{ id: 'distribute', kind: 'distribute', label: 'Снаряды по целям', count: 3, default: null }],
+    simulateOnce(ctx) {
+      const n = ctx.targets.length;
+      const out = empty(n);
+      if (n === 0) return out;
+      const plan = ctx.params.distribute || Array.from({ length: 3 }, (_, i) => i % n);
+      for (const t of plan) out[t].push({ type: 'magic', amount: rollDie(4, ctx.rng, ctx.mods.orcReroll) + 1 });
+      return out;
+    },
+  },
+  {
+    id: 'staff', name: 'Атака посохом', classKey: 'wizard',
+    usesAttackRoll: true, usesSave: false, category: 'physical',
+    minGame: 1, choiceGroup: null, charges: 'без ограничений', targeting: 'single',
+    params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
+    simulateOnce(ctx) { return singleAttack(ctx, ctx.params.target ?? 0, 4, 'physical'); },
+  },
+  {
+    id: 'telekinesis', name: 'Телекинез (атака)', classKey: 'wizard',
+    usesAttackRoll: true, usesSave: false, category: 'magic',
+    minGame: 1, choiceGroup: null, charges: 'без ограничений', targeting: 'single',
+    params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
+    simulateOnce(ctx) { return singleAttack(ctx, ctx.params.target ?? 0, 4, 'magic'); },
+  },
+  {
+    id: 'fireball', name: 'Огненный шар', classKey: 'wizard',
+    usesAttackRoll: false, usesSave: true, category: 'magic',
+    minGame: 1, choiceGroup: null, charges: '1 раз в бой', targeting: 'area',
+    params: [],
+    simulateOnce(ctx) {
+      const out = empty(ctx.targets.length);
+      const mode = ctx.mods.hex ? 'dis' : 'none'; // Сглаз = помеха спасброску цели
+      for (let i = 0; i < ctx.targets.length; i++) {
+        const saveBonus = (ctx.targets[i].saves && ctx.targets[i].saves.dex) || 0;
+        const nat = attackRoll(ctx.rng, mode);
+        const saved = nat !== 1 && (nat === 20 || nat + saveBonus >= 15);
+        const full = sumDice(6, 6, ctx.rng, ctx.mods.orcReroll);
+        out[i].push({ type: 'fire', amount: saved ? Math.floor(full / 2) : full });
+      }
+      return out;
+    },
+  },
+  {
+    id: 'chainLightning', name: 'Цепная молния', classKey: 'wizard',
+    usesAttackRoll: true, usesSave: false, category: 'magic',
+    minGame: 1, choiceGroup: null, charges: '2 раза в бой', targeting: 'chain',
+    params: [{ id: 'order', kind: 'targetOrder', label: 'Порядок ударов', max: 4, default: null }],
+    simulateOnce(ctx) {
+      const n = ctx.targets.length;
+      const out = empty(n);
+      if (n === 0) return out;
+      const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+      const boltAmount = (isCrit) => sumDice(isCrit ? 4 : 2, 6, ctx.rng, ctx.mods.orcReroll);
+      const seq = ctx.params.order;
+      if (seq && seq.length) {
+        out[seq[0]].push({ type: 'lightning', amount: boltAmount(false) }); // авто, не крит
+        for (let i = 1; i < seq.length; i++) {
+          const nat = attackRoll(ctx.rng, mode);
+          const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac, ctx.critRange);
+          if (!hit) break;
+          out[seq[i]].push({ type: 'lightning', amount: boltAmount(crit) });
+        }
+        return out;
+      }
+      // Жадная маршрутизация (наим. КБ, кроме текущей; можно вернуться, но не подряд).
+      out[0].push({ type: 'lightning', amount: boltAmount(false) }); // авто, не крит
+      if (n < 2) return out;
+      let prev = 0;
+      for (let step = 0; step < 3; step++) {
+        let next = -1;
+        for (let j = 0; j < n; j++) {
+          if (j === prev) continue;
+          if (next < 0 || ctx.targets[j].ac < ctx.targets[next].ac) next = j;
+        }
+        const nat = attackRoll(ctx.rng, mode);
+        const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[next].ac, ctx.critRange);
+        if (!hit) break;
+        out[next].push({ type: 'lightning', amount: boltAmount(crit) });
+        prev = next;
+      }
+      return out;
+    },
+  },
+  {
+    id: 'unknownAttack', name: 'Неизвестная атака', classKey: 'wizard',
+    minGame: 12, choiceGroup: 'game12', charges: '2 раза в день', targeting: 'single',
+    usesAttackRoll: false, usesSave: false, category: 'magic',
+    params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
+    simulateOnce(ctx) {
+      // Выбранная цель получает ровно 15 урона типа psychic
+      const out = Array.from({ length: ctx.targets.length }, () => []);
+      out[ctx.params.target ?? 0].push({ type: 'psychic', amount: 15 });
+      return out;
+    },
+  },
+];

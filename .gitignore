@@ -1,0 +1,11 @@
+.DS_Store
+**/.DS_Store
+.idea/
+.playwright-mcp/
+.superpowers/
+mobile-360.png
+*.png
+.claude/
+
+# Собирается из src/ командой `node build.js`; на Pages его публикует CI.
+dnd-dmg.html
