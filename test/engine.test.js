@@ -68,6 +68,16 @@ test('isHit: нат.20 — крит', () => {
   assert.deepEqual(isHit(20, -5, 99), { hit: true, crit: true });
 });
 
+test('isHit: fumbleRange 2 делает двойку промахом («Злой рок» человека)', () => {
+  assert.deepEqual(isHit(2, 10, 5, 20, 2), { hit: false, crit: false });
+  assert.deepEqual(isHit(2, 10, 5, 20, 1), { hit: true, crit: false });
+  assert.deepEqual(isHit(3, 10, 5, 20, 2), { hit: true, crit: false });
+});
+
+test('isHit: critRange 21 убирает криты (кицунэ)', () => {
+  assert.deepEqual(isHit(20, 10, 5, 21), { hit: true, crit: false });
+});
+
 test('isHit: нат.1 — промах', () => {
   assert.deepEqual(isHit(1, 50, 5), { hit: false, crit: false });
 });

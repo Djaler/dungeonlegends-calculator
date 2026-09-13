@@ -28,7 +28,7 @@ export const ARTIFICER_ABILITIES = [
       const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
       const bonus = ctx.attackBonus('dex');
       const nat = attackRoll(ctx.rng, mode);
-      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange);
+      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);
       // болт без стата к урону (стат-мультипликатор урона вне данной модели)
       if (hit) out[i].push({ type: 'physical', amount: dmgDice(die, ctx, crit) + ctx.attackBonus('dex') });
       return out;
@@ -59,7 +59,7 @@ export const ARTIFICER_ABILITIES = [
       const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
       const bonus = ctx.attackBonus('dex');
       const nat = attackRoll(ctx.rng, mode);
-      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange);
+      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange, ctx.fumbleRange);
       // 1д6 урона; «сбивает с ног» вне модели урона
       if (hit) out[i].push({ type: 'physical', amount: dmgDice('1d6', ctx, crit) + bonus });
       return out;

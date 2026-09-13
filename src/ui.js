@@ -552,6 +552,7 @@ function initUI(root) {
       stats,
       weapon: weaponForCharacter(c),
       critRange: critRangeForCharacter(c),
+      fumbleRange: fumbleRangeForCharacter(c),
       targets: state.targets.map((t) => ({ ac: t.ac, hp: t.hp, saves: t.saves || { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: t.race || null })),
       mods: {
         orcReroll: !!(RACES[c.raceKey] && RACES[c.raceKey].orcReroll),

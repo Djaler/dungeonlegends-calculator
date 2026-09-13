@@ -95,9 +95,16 @@ export const ARTIFACTS = [
 
 // Диапазон крита с учётом выборов [12] и артефактов.
 export function critRangeForCharacter(c) {
+  // Кицунэ «выбрали баланс»: критических успехов нет вообще — порог недостижим.
+  if (RACES[c.raceKey] && RACES[c.raceKey].noCrit) return 21;
   let r = (c.classKey === 'warrior' && c.game >= 12 && c.game12Choice === 'weakSpot') ? 18 : 20;
   if (c.artifacts && c.artifacts.includes('braceletsOfLuck')) r = Math.min(r, 19);
   return r;
+}
+
+// Верхняя граница критической неудачи: у человека «Злой рок» — провал на 1 или 2.
+export function fumbleRangeForCharacter(c) {
+  return (RACES[c.raceKey] && RACES[c.raceKey].fumbleOn2) ? 2 : 1;
 }
 
 // Какие модификаторы применимы к данной способности (и классу персонажа).
@@ -111,7 +118,8 @@ export function modifierRelevance(ability, character) {
     dis: !!ability.usesAttackRoll,
     hex: !!ability.usesSave,
     chaos: magic,
-    concentration: c.classKey === 'wizard' && c.game >= 4,
+    // Концентрация прибавляется «к следующему магическому урону» — на посох не льётся.
+    concentration: c.classKey === 'wizard' && c.game >= 4 && magic,
     rage: ability.category === 'physical',
     orcReroll: !!(RACES[c.raceKey] && RACES[c.raceKey].orcReroll),
     barbRage: cls === 'barbarian',

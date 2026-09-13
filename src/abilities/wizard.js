@@ -10,7 +10,7 @@ function singleAttack(ctx, index, sides, type, stat, addStat) {
   const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
   const bonus = ctx.attackBonus(stat);
   const nat = attackRoll(ctx.rng, mode);
-  const { hit, crit } = isHit(nat, bonus, ctx.targets[index].ac, ctx.critRange);
+  const { hit, crit } = isHit(nat, bonus, ctx.targets[index].ac, ctx.critRange, ctx.fumbleRange);
   if (hit) {
     const amount = crit
       ? rollDie(sides, ctx.rng, ctx.mods.orcReroll) + rollDie(sides, ctx.rng, ctx.mods.orcReroll)
@@ -85,7 +85,7 @@ export const WIZARD_ABILITIES = [
         out[seq[0]].push({ type: 'lightning', amount: boltAmount(false) }); // авто, не крит
         for (let i = 1; i < seq.length; i++) {
           const nat = attackRoll(ctx.rng, mode);
-          const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac, ctx.critRange);
+          const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac, ctx.critRange, ctx.fumbleRange);
           if (!hit) break;
           out[seq[i]].push({ type: 'lightning', amount: boltAmount(crit) });
         }
@@ -102,7 +102,7 @@ export const WIZARD_ABILITIES = [
           if (next < 0 || ctx.targets[j].ac < ctx.targets[next].ac) next = j;
         }
         const nat = attackRoll(ctx.rng, mode);
-        const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[next].ac, ctx.critRange);
+        const { hit, crit } = isHit(nat, ctx.attackBonus('int'), ctx.targets[next].ac, ctx.critRange, ctx.fumbleRange);
         if (!hit) break;
         out[next].push({ type: 'lightning', amount: boltAmount(crit) });
         prev = next;

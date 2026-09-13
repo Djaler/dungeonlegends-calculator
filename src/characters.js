@@ -20,7 +20,7 @@ export const CLASSES = {
 // onIncoming — правила ПОЛУЧАЕМОГО урона по категории (для целей этой расы).
 // orcReroll — пассивка атакующего «Рождённый в битве» (переброс кубика урона 1–2).
 export const RACES = {
-  human:      { name: 'Человек',          hpMod: 0,  acMod: 0, statMods: {} },
+  human:      { name: 'Человек',          hpMod: 0,  acMod: 0, statMods: {}, fumbleOn2: true },
   elf:        { name: 'Эльф',             hpMod: 0,  acMod: 0, statMods: {} },
   dwarf:      { name: 'Дварф',            hpMod: 0,  acMod: 0, statMods: { dex: -1 }, onIncoming: { magic: { mult: 0.5 } } },
   halfling:   { name: 'Полурослик',       hpMod: -5, acMod: 0, statMods: {} },
@@ -30,7 +30,7 @@ export const RACES = {
   tabaxi:     { name: 'Табакси',          hpMod: 0,  acMod: 0, statMods: {} },
   dragonborn: { name: 'Драконорождённый', hpMod: 0,  acMod: 1, statMods: {} },
   goblin:     { name: 'Гоблин',           hpMod: 0,  acMod: 0, statMods: {} },
-  kitsune:    { name: 'Кицунэ',           hpMod: 0,  acMod: 0, statMods: {} },
+  kitsune:    { name: 'Кицунэ',           hpMod: 0,  acMod: 0, statMods: {}, noCrit: true },
 };
 
 export const MILESTONES = [4, 8, 12, 16, 20];

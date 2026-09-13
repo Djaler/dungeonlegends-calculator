@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   availableAbilities, defaultParams, sanitizeOrder, modifierRelevance,
   presetTarget, defaultState, serializeState, deserializeState,
-  GAME12_CHOICES, weaponForCharacter, critRangeForCharacter, ARTIFACTS,
+  GAME12_CHOICES, weaponForCharacter, critRangeForCharacter, fumbleRangeForCharacter, ARTIFACTS,
 } from '../src/ui-logic.js';
 
 test('availableAbilities: волшебник на 1 игре видит базовую атаку + стартовые спеллы, без [12]', () => {
@@ -70,6 +70,25 @@ test('modifierRelevance: ярость варвара только у варва�
   const wb = availableAbilities({ classKey: 'warrior', game: 1, game12Choice: null })[0];
   assert.equal(modifierRelevance(wb, { classKey: 'warrior', game: 1 }).barbRage, false);
   assert.equal(modifierRelevance(wb, { classKey: 'warrior', game: 1 }).bonusAttack, true);
+});
+
+test('critRangeForCharacter: у кицунэ критов нет (порог недостижим)', () => {
+  assert.equal(critRangeForCharacter({ classKey: 'warrior', raceKey: 'kitsune', game: 12, game12Choice: 'weakSpot' }), 21);
+  assert.equal(critRangeForCharacter({ classKey: 'warrior', raceKey: 'kitsune', game: 1, artifacts: ['braceletsOfLuck'] }), 21);
+  assert.equal(critRangeForCharacter({ classKey: 'warrior', raceKey: 'human', game: 1 }), 20);
+});
+
+test('fumbleRangeForCharacter: у человека «Злой рок» — провал на 1 и 2', () => {
+  assert.equal(fumbleRangeForCharacter({ raceKey: 'human' }), 2);
+  assert.equal(fumbleRangeForCharacter({ raceKey: 'orc' }), 1);
+  assert.equal(fumbleRangeForCharacter({}), 1);
+});
+
+test('modifierRelevance: концентрация только для магических способностей', () => {
+  const fb = availableAbilities({ classKey: 'wizard', game: 4, game12Choice: null }).find((a) => a.id === 'fireball');
+  const staff = availableAbilities({ classKey: 'wizard', game: 4, game12Choice: null }).find((a) => a.id === 'staff');
+  assert.equal(modifierRelevance(fb, { classKey: 'wizard', game: 4 }).concentration, true);
+  assert.equal(modifierRelevance(staff, { classKey: 'wizard', game: 4 }).concentration, false);
 });
 
 test('critRangeForCharacter: Слабое место даёт 18 на 12 игре', () => {

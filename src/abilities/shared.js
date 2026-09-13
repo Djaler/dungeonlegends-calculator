@@ -29,12 +29,12 @@ export function multiWeaponAttack(ctx, plan) {
     let hit, crit = false;
     if (firstStrike && m.luckyCrit) {
       const nat = attackRoll(ctx.rng, mode);
-      const r = isHit(nat, hitBonus, ac, ctx.critRange);
+      const r = isHit(nat, hitBonus, ac, ctx.critRange, ctx.fumbleRange);
       if (r.hit) { hit = true; crit = r.crit; }   // попал обычно (или сам по себе крит)
       else { hit = true; crit = true; }            // промах -> считаем критом
     }
     else if (firstStrike && m.guaranteedHit) { hit = true; }
-    else { const nat = attackRoll(ctx.rng, mode); const r = isHit(nat, hitBonus, ac, ctx.critRange); hit = r.hit; crit = r.crit; }
+    else { const nat = attackRoll(ctx.rng, mode); const r = isHit(nat, hitBonus, ac, ctx.critRange, ctx.fumbleRange); hit = r.hit; crit = r.crit; }
     if (hit) {
       const d = ctx.weapon.dice;
       const rollWeapon = (isCrit) => isCrit

@@ -40,8 +40,9 @@ export function attackRoll(rng, mode) {
   return mode === 'adv' ? Math.max(a, b) : Math.min(a, b);
 }
 
-export function isHit(nat, bonus, ac, critRange = 20) {
-  if (nat === 1) return { hit: false, crit: false };
+// fumbleRange — верхняя граница критической неудачи: у человека «Злой рок» это 2.
+export function isHit(nat, bonus, ac, critRange = 20, fumbleRange = 1) {
+  if (nat <= fumbleRange) return { hit: false, crit: false };
   if (nat >= critRange) return { hit: true, crit: true };
   return { hit: nat + bonus >= ac, crit: false };
 }
