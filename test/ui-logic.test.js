@@ -154,7 +154,7 @@ test('ARTIFACTS: влияющие на урон артефакты правил,
   const ids = ARTIFACTS.map((a) => a.id);
   assert.deepEqual(ids, [
     'runeOfWarrior', 'braceletsOfLuck', 'runeOfElements',
-    'paladinSymbol', 'inventorBracelet', 'rabbitFoot', 'wizardStaff', 'ringOfLegend',
+    'paladinSymbol', 'inventorBracelet', 'rabbitFoot', 'ringOfLegend',
   ]);
   assert.ok(ARTIFACTS.every((a) => a.name && !a.hint));
 });

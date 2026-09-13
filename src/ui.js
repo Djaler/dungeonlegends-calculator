@@ -375,7 +375,6 @@ function initUI(root) {
       ['inspiration', 'Воодушевление (+д6)', 'бард влил вам д6 к урону: +1d6 первой цели с уроном'],
       ['tincture', 'Настойка: смелость (×2)', 'вы выпили настойку и выпало «3»: удваивает весь урон за ход'],
       ['talent', 'Талант (+3 к кубу)', '16-я игра: +3 к броску куба оружия, но не выше его максимума'],
-      ['wizardStaff', 'Посох волшебника (1д4+1)', 'артефакт: магический снаряд бонусным действием'],
       ['rabbitFoot', 'Кроличья лапка (переброс)', 'артефакт: перебросить неудачный бросок атаки'],
     ];
     document.getElementById('mods').innerHTML =
@@ -612,7 +611,6 @@ function initUI(root) {
         typeOverride: (rel.typeOverride && state.mods.contactless) ? 'magic' : undefined,
         genius: rel.genius ? (state.mods.genius || 0) : 0,
         talent: !!(rel.talent && state.mods.talent),
-        wizardStaff: !!(rel.wizardStaff && state.mods.wizardStaff),
         rabbitFoot: !!(rel.rabbitFoot && state.mods.rabbitFoot),
         runeOfWarrior: (c.artifacts || []).includes('runeOfWarrior'),
         runeOfElements: (c.artifacts || []).includes('runeOfElements'),

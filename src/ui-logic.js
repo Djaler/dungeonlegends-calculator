@@ -94,7 +94,6 @@ export const ARTIFACTS = [
   { id: 'paladinSymbol',   name: 'Символ паладина (2д10 кары)' },
   { id: 'inventorBracelet', name: 'Браслет изобретателя (+Инт к атаке)' },
   { id: 'rabbitFoot',      name: 'Кроличья лапка (переброс д20)' },
-  { id: 'wizardStaff',     name: 'Посох волшебника (1д4+1 магии)' },
   { id: 'ringOfLegend',    name: 'Кольцо легенды (нет слабости расы)' },
 ];
 
@@ -140,8 +139,6 @@ export function modifierRelevance(ability, character) {
     genius: !!ability.usesAttackRoll,
     // Талант 16-й игры: +3 к броску куба урона, но не выше грани куба.
     talent: c.game >= 16,
-    // Посох волшебника — отдельный артефактный источник урона за ход.
-    wizardStaff: (c.artifacts || []).includes('wizardStaff'),
     // Кроличья лапка: перебросить неудачный д20.
     rabbitFoot: !!ability.usesAttackRoll && (c.artifacts || []).includes('rabbitFoot'),
     guaranteedHit: cls === 'ranger' || c.raceKey === 'elf',
@@ -181,7 +178,7 @@ export function defaultState() {
     targets: [{ ac: 12, hp: 30, saves: { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: null, preset: null }],
     mods: { adv: false, dis: false, concentration: 0, chaos: false, hex: false, rage: false, orcReroll: false,
       barbRage: false, bonusAttack: false, smiteDice: 0, guaranteedHit: false, luckyCrit: false,
-      resolveAbilityId: null, genius: 0, talent: false, wizardStaff: false, rabbitFoot: false,
+      resolveAbilityId: null, genius: 0, talent: false, rabbitFoot: false,
       sneak: false, sneakDouble: false, gwm: false, giantHunter: false, ricochet: false,
       contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire' },
     pinned: false,
