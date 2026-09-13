@@ -93,6 +93,17 @@ test('воодушевление: +1д6 первой цели с уроном', 
   assert.deepEqual(out, [11]); // 5 + 6
 });
 
+test('Посох волшебника: +1д4+1 магии первой цели с уроном', () => {
+  // 1d4 при 0.99 -> 4, +1 = 5; к пакету 7 даёт 12
+  const out = applyPipeline([[{ type: 'physical', amount: 7 }]], baseCtx({ mods: { wizardStaff: true } }));
+  assert.equal(out[0], 12);
+});
+
+test('Посох волшебника: без артефакта ничего не добавляет', () => {
+  const out = applyPipeline([[{ type: 'physical', amount: 7 }]], baseCtx({}));
+  assert.equal(out[0], 7);
+});
+
 test('Руна стихий: конверсия типа + 1д6', () => {
   // конвертим всё в radiant, +1д6 radiant. база physical 5 -> radiant 5; +6 =11 radiant
   const out = applyPipeline([[{type:'physical',amount:5}]], baseCtx({ rng: seqRng([0.99]), mods:{ runeOfElements:true, runeType:'radiant' } }));

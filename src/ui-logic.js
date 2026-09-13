@@ -91,20 +91,30 @@ export const ARTIFACTS = [
   { id: 'runeOfWarrior',   name: 'Руна воителя (+1 атака/урон оружия)' },
   { id: 'braceletsOfLuck', name: 'Наручи удачи (крит 19)' },
   { id: 'runeOfElements',  name: 'Руна стихий (+1д6, смена типа)' },
+  { id: 'paladinSymbol',   name: 'Символ паладина (2д10 кары)' },
+  { id: 'inventorBracelet', name: 'Браслет изобретателя (+Инт к атаке)' },
+  { id: 'rabbitFoot',      name: 'Кроличья лапка (переброс д20)' },
+  { id: 'wizardStaff',     name: 'Посох волшебника (1д4+1 магии)' },
+  { id: 'ringOfLegend',    name: 'Кольцо легенды (нет слабости расы)' },
 ];
 
 // Диапазон крита с учётом выборов [12] и артефактов.
 export function critRangeForCharacter(c) {
   // Кицунэ «выбрали баланс»: критических успехов нет вообще — порог недостижим.
-  if (RACES[c.raceKey] && RACES[c.raceKey].noCrit) return 21;
+  if (RACES[c.raceKey] && RACES[c.raceKey].noCrit && !hasRingOfLegend(c)) return 21;
   let r = (c.classKey === 'warrior' && c.game >= 12 && c.game12Choice === 'weakSpot') ? 18 : 20;
   if (c.artifacts && c.artifacts.includes('braceletsOfLuck')) r = Math.min(r, 19);
   return r;
 }
 
+// Кольцо легенды снимает слабость своей расы.
+function hasRingOfLegend(c) {
+  return !!(c.artifacts && c.artifacts.includes('ringOfLegend'));
+}
+
 // Верхняя граница критической неудачи: у человека «Злой рок» — провал на 1 или 2.
 export function fumbleRangeForCharacter(c) {
-  return (RACES[c.raceKey] && RACES[c.raceKey].fumbleOn2) ? 2 : 1;
+  return (RACES[c.raceKey] && RACES[c.raceKey].fumbleOn2 && !hasRingOfLegend(c)) ? 2 : 1;
 }
 
 // Какие модификаторы применимы к данной способности (и классу персонажа).
@@ -124,7 +134,16 @@ export function modifierRelevance(ability, character) {
     orcReroll: !!(RACES[c.raceKey] && RACES[c.raceKey].orcReroll),
     barbRage: cls === 'barbarian',
     bonusAttack: cls === 'warrior' || (cls === 'paladin' && g12 === 'extraAttack') || (cls === 'ranger' && c.game >= 4),
-    smiteDice: cls === 'paladin',
+    // Кару даёт и артефакт «Символ паладина» — он доступен любому классу.
+    smiteDice: cls === 'paladin' || (c.artifacts || []).includes('paladinSymbol'),
+    // Гениальность изобретателя и его браслет: союзник добавляет свой Интеллект к атаке.
+    genius: !!ability.usesAttackRoll,
+    // Талант 16-й игры: +3 к броску куба урона, но не выше грани куба.
+    talent: c.game >= 16,
+    // Посох волшебника — отдельный артефактный источник урона за ход.
+    wizardStaff: (c.artifacts || []).includes('wizardStaff'),
+    // Кроличья лапка: перебросить неудачный д20.
+    rabbitFoot: !!ability.usesAttackRoll && (c.artifacts || []).includes('rabbitFoot'),
     guaranteedHit: cls === 'ranger' || c.raceKey === 'elf',
     humanResolve: c.raceKey === 'human',
     luckyCrit: cls === 'rogue' && c.game >= 12 && c.game12Choice === 'lucky',
@@ -162,7 +181,7 @@ export function defaultState() {
     targets: [{ ac: 12, hp: 30, saves: { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: null, preset: null }],
     mods: { adv: false, dis: false, concentration: 0, chaos: false, hex: false, rage: false, orcReroll: false,
       barbRage: false, bonusAttack: false, smiteDice: 0, guaranteedHit: false, luckyCrit: false,
-      resolveAbilityId: null,
+      resolveAbilityId: null, genius: 0, talent: false, wizardStaff: false, rabbitFoot: false,
       sneak: false, sneakDouble: false, gwm: false, giantHunter: false, ricochet: false,
       contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire' },
     pinned: false,

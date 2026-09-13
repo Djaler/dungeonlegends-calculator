@@ -22,6 +22,14 @@ function addInspiration(packets, ctx) {
   return packets;
 }
 
+// (1b2) Посох волшебника (артефакт): бонусным действием магический снаряд 1д4+1.
+function addWizardStaff(packets, ctx) {
+  if (!ctx.mods.wizardStaff || packets.length === 0) return packets;
+  const idx = Math.max(0, packets.findIndex((arr) => arr.some((p) => p.amount > 0)));
+  packets[idx] = [...packets[idx], { type: 'magic', amount: sumDice(1, 4, ctx.rng, ctx.mods.orcReroll) + 1 }];
+  return packets;
+}
+
 // (1c) Руна стихий: конвертировать тип всех пакетов, добавить 1д6 первой цели с уроном.
 function applyRuneOfElements(packets, ctx) {
   if (!ctx.mods.runeOfElements) return packets;
@@ -60,6 +68,7 @@ export function applyPipeline(packets, ctx) {
   let p = packets.map((arr) => arr.slice());
   p = addAttackerAdditive(p, ctx);
   p = addInspiration(p, ctx);
+  p = addWizardStaff(p, ctx);
   p = applyRuneOfElements(p, ctx);
   p = applyMultipliers(p, ctx);
   return p.map((arr, i) => finalizeTarget(arr, ctx.targets[i]));

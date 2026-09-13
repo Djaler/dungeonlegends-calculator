@@ -150,11 +150,30 @@ test('critRangeForCharacter: Наручи удачи дают 19', () => {
   assert.equal(critRangeForCharacter({classKey:'warrior',game:12,game12Choice:'weakSpot',artifacts:['braceletsOfLuck']}), 18);
 });
 
-test('ARTIFACTS: ровно 3 записи с нужными id, без hint', () => {
-  assert.equal(ARTIFACTS.length, 3);
+test('ARTIFACTS: влияющие на урон артефакты правил, без hint', () => {
   const ids = ARTIFACTS.map((a) => a.id);
-  assert.deepEqual(ids, ['runeOfWarrior', 'braceletsOfLuck', 'runeOfElements']);
+  assert.deepEqual(ids, [
+    'runeOfWarrior', 'braceletsOfLuck', 'runeOfElements',
+    'paladinSymbol', 'inventorBracelet', 'rabbitFoot', 'wizardStaff', 'ringOfLegend',
+  ]);
   assert.ok(ARTIFACTS.every((a) => a.name && !a.hint));
+});
+
+test('Символ паладина даёт кару непаладину', () => {
+  const ba = availableAbilities({ classKey: 'wizard', game: 20, game12Choice: null })[0];
+  assert.equal(modifierRelevance(ba, { classKey: 'wizard', game: 20, artifacts: ['paladinSymbol'] }).smiteDice, true);
+  assert.equal(modifierRelevance(ba, { classKey: 'wizard', game: 20, artifacts: [] }).smiteDice, false);
+});
+
+test('Кольцо легенды снимает слабость расы', () => {
+  assert.equal(fumbleRangeForCharacter({ raceKey: 'human', artifacts: ['ringOfLegend'] }), 1);
+  assert.equal(critRangeForCharacter({ classKey: 'warrior', raceKey: 'kitsune', game: 1, artifacts: ['ringOfLegend'] }), 20);
+});
+
+test('modifierRelevance: Талант только с 16 игры', () => {
+  const ba = availableAbilities({ classKey: 'warrior', game: 16, game12Choice: null })[0];
+  assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 16 }).talent, true);
+  assert.equal(modifierRelevance(ba, { classKey: 'warrior', game: 12 }).talent, false);
 });
 
 test('modifierRelevance: runeOfElements — true только когда артефакт выбран', () => {

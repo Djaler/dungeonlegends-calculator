@@ -342,6 +342,12 @@ function initUI(root) {
 
   // --- модификаторы ---
 
+  // Потолок кары: паладину — по прокачке, всем прочим «Символ паладина» даёт 2д10.
+  function smiteCap(c) {
+    if (c.classKey !== 'paladin') return 2;
+    return (c.game >= 12 && c.game12Choice === 'improvedSmite') ? 6 : 4;
+  }
+
   function renderMods() {
     const a = currentAbility();
     const rel = a ? modifierRelevance(a, state.character) : { adv: false, dis: false, hex: false, chaos: false, concentration: false, rage: false, orcReroll: false };
@@ -368,6 +374,9 @@ function initUI(root) {
       ['sacredWeapon', 'Священное оружие (+Ст)', '+значение Телосложения к урону оружием'],
       ['inspiration', 'Воодушевление (+д6)', 'бард влил вам д6 к урону: +1d6 первой цели с уроном'],
       ['tincture', 'Настойка: смелость (×2)', 'вы выпили настойку и выпало «3»: удваивает весь урон за ход'],
+      ['talent', 'Талант (+3 к кубу)', '16-я игра: +3 к броску куба оружия, но не выше его максимума'],
+      ['wizardStaff', 'Посох волшебника (1д4+1)', 'артефакт: магический снаряд бонусным действием'],
+      ['rabbitFoot', 'Кроличья лапка (переброс)', 'артефакт: перебросить неудачный бросок атаки'],
     ];
     document.getElementById('mods').innerHTML =
       '<div class="sigils">' + toggles.map(([k, l, hint]) => {
@@ -404,6 +413,14 @@ function initUI(root) {
             </select>
           </div>`;
         })() : '')
+      + (rel.genius ? `<div class="int-row" style="margin-top:10px">
+          <div class="cap"><b>Гениальность +${state.mods.genius}</b><span>изобретатель добавляет свой Интеллект к вашей атаке</span></div>
+          <div class="stepper">
+            <button data-genius="-1" aria-label="меньше">−</button>
+            <input type="number" value="${state.mods.genius}" readonly aria-label="Гениальность">
+            <button data-genius="1" aria-label="больше">+</button>
+          </div>
+        </div>` : '')
       + (rel.concentration ? `<div class="int-row" style="margin-top:10px">
           <div class="cap"><b>Концентрация ×${state.mods.concentration}</b><span>+2d6 к урону за каждый заряд</span></div>
           <div class="stepper">
@@ -413,7 +430,7 @@ function initUI(root) {
           </div>
         </div>` : '')
       + (rel.smiteDice ? (() => {
-          const maxSmite = (c.game >= 12 && c.game12Choice === 'improvedSmite') ? 6 : 4;
+          const maxSmite = smiteCap(c);
           return `<div class="int-row" style="margin-top:10px">
             <div class="cap"><b>Кара паладина ×${state.mods.smiteDice}</b><span>+1d10 к урону за кость (макс ${maxSmite})</span></div>
             <div class="stepper">
@@ -439,8 +456,12 @@ function initUI(root) {
       state.mods.concentration = Math.max(0, state.mods.concentration + Number(b.dataset.conc));
       renderMods(); save(); run();
     });
+    qsa('[data-genius]').forEach((b) => b.onclick = () => {
+      state.mods.genius = Math.max(0, Math.min(5, (state.mods.genius || 0) + Number(b.dataset.genius)));
+      renderMods(); save(); run();
+    });
     qsa('[data-smite]').forEach((b) => b.onclick = () => {
-      const maxSmite = (c.game >= 12 && c.game12Choice === 'improvedSmite') ? 6 : 4;
+      const maxSmite = smiteCap(c);
       state.mods.smiteDice = Math.max(0, Math.min(maxSmite, state.mods.smiteDice + Number(b.dataset.smite)));
       renderMods(); save(); run();
     });
@@ -573,6 +594,10 @@ function initUI(root) {
         smiteDice: rel.smiteDice ? (state.mods.smiteDice || 0) : 0,
         acIgnore: (rel.acIgnore && state.mods.giantHunter) ? stats.wis : 0,
         typeOverride: (rel.typeOverride && state.mods.contactless) ? 'magic' : undefined,
+        genius: rel.genius ? (state.mods.genius || 0) : 0,
+        talent: !!(rel.talent && state.mods.talent),
+        wizardStaff: !!(rel.wizardStaff && state.mods.wizardStaff),
+        rabbitFoot: !!(rel.rabbitFoot && state.mods.rabbitFoot),
         runeOfWarrior: (c.artifacts || []).includes('runeOfWarrior'),
         runeOfElements: (c.artifacts || []).includes('runeOfElements'),
         runeType: state.mods.runeType || 'fire',
