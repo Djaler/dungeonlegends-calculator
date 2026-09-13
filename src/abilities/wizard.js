@@ -1,4 +1,4 @@
-import { rollDie, sumDice, attackRoll, isHitWithTalent, resolveModeFor, talentTally } from '../engine.js';
+import { rollDie, sumDice, attackRoll, attackOnce, resolveModeFor, talentTally } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -9,8 +9,7 @@ function singleAttack(ctx, index, sides, type, stat, addStat) {
   const out = empty(ctx.targets.length);
   const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[index]);
   const bonus = ctx.attackBonus(stat);
-  const nat = attackRoll(ctx.rng, mode);
-  const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[index].ac);
+  const { hit, crit } = attackOnce(ctx, bonus, ctx.targets[index].ac, mode, true);
   if (hit) {
     const amount = crit
       ? rollDie(sides, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) + rollDie(sides, ctx.rng, ctx.mods.orcReroll, talentTally(ctx))
@@ -85,8 +84,7 @@ export const WIZARD_ABILITIES = [
       if (seq && seq.length) {
         out[seq[0]].push({ type: 'lightning', amount: boltAmount(false) }); // авто, не крит
         for (let i = 1; i < seq.length; i++) {
-          const nat = attackRoll(ctx.rng, modeFor(seq[i]));
-          const { hit, crit } = isHitWithTalent(ctx, nat, ctx.attackBonus('int'), ctx.targets[seq[i]].ac);
+          const { hit, crit } = attackOnce(ctx, ctx.attackBonus('int'), ctx.targets[seq[i]].ac, modeFor(seq[i]), i === 1);
           if (!hit) break;
           out[seq[i]].push({ type: 'lightning', amount: boltAmount(crit) });
         }
@@ -102,8 +100,7 @@ export const WIZARD_ABILITIES = [
           if (j === prev) continue;
           if (next < 0 || ctx.targets[j].ac < ctx.targets[next].ac) next = j;
         }
-        const nat = attackRoll(ctx.rng, modeFor(next));
-        const { hit, crit } = isHitWithTalent(ctx, nat, ctx.attackBonus('int'), ctx.targets[next].ac);
+        const { hit, crit } = attackOnce(ctx, ctx.attackBonus('int'), ctx.targets[next].ac, modeFor(next), step === 0);
         if (!hit) break;
         out[next].push({ type: 'lightning', amount: boltAmount(crit) });
         prev = next;

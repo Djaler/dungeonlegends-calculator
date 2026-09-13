@@ -128,6 +128,10 @@ export function modifierRelevance(ability, character) {
   const cls = c.classKey;
   const g12 = c.game >= 12 ? c.game12Choice : null;
   const magic = ability.category === 'magic';
+  // Модификаторы оружия читает только multiWeaponAttack, поэтому на способностях
+  // со своими бросками (заклинания, формы, расовые) их показывать нельзя: тумблер
+  // был бы виден и мёртв. Признак объявляют сами способности.
+  const weapon = !!ability.weaponBased;
   return {
     adv: !!ability.usesAttackRoll,
     dis: !!ability.usesAttackRoll,
@@ -137,10 +141,10 @@ export function modifierRelevance(ability, character) {
     concentration: c.classKey === 'wizard' && c.game >= 4 && magic,
     rage: ability.category === 'physical',
     orcReroll: !!(RACES[c.raceKey] && RACES[c.raceKey].orcReroll),
-    barbRage: cls === 'barbarian',
-    bonusAttack: cls === 'warrior' || (cls === 'paladin' && g12 === 'extraAttack') || (cls === 'ranger' && c.game >= 4),
+    barbRage: weapon && cls === 'barbarian',
+    bonusAttack: weapon && (cls === 'warrior' || (cls === 'paladin' && g12 === 'extraAttack') || (cls === 'ranger' && c.game >= 4)),
     // Кару даёт и артефакт «Символ паладина» — он доступен любому классу.
-    smiteDice: cls === 'paladin' || (c.artifacts || []).includes('paladinSymbol'),
+    smiteDice: weapon && (cls === 'paladin' || (c.artifacts || []).includes('paladinSymbol')),
     // Гениальность изобретателя и его браслет: союзник добавляет свой Интеллект к атаке.
     genius: !!ability.usesAttackRoll,
     // Талант 16-й игры: +3 к броску куба. Способностям без единого броска
@@ -148,20 +152,21 @@ export function modifierRelevance(ability, character) {
     talent: c.game >= 16 && (!!ability.usesAttackRoll || !ability.fixedDamage),
     // Кроличья лапка: перебросить неудачный д20.
     rabbitFoot: !!ability.usesAttackRoll && (c.artifacts || []).includes('rabbitFoot'),
-    guaranteedHit: cls === 'ranger' || c.raceKey === 'elf',
+    // Автопопадание нужно только там, где вообще бросают на попадание.
+    guaranteedHit: !!ability.usesAttackRoll && (cls === 'ranger' || c.raceKey === 'elf'),
     humanResolve: c.raceKey === 'human',
-    luckyCrit: cls === 'rogue' && c.game >= 12 && c.game12Choice === 'lucky',
-    sneak: cls === 'rogue',
-    sneakDouble: cls === 'rogue',
-    gwm: cls === 'barbarian' && g12 === 'gwm',
-    acIgnore: cls === 'ranger' && g12 === 'giantHunter',
-    giantHunter: cls === 'ranger' && g12 === 'giantHunter',
-    ricochet: cls === 'ranger' && g12 === 'ricochet',
-    typeOverride: cls === 'monk' && c.game >= 4,
-    contactless: cls === 'monk' && c.game >= 4,
-    runeOfWarrior: (c.artifacts || []).includes('runeOfWarrior'),
+    luckyCrit: weapon && cls === 'rogue' && c.game >= 12 && c.game12Choice === 'lucky',
+    sneak: weapon && cls === 'rogue',
+    sneakDouble: weapon && cls === 'rogue',
+    gwm: weapon && cls === 'barbarian' && g12 === 'gwm',
+    acIgnore: weapon && cls === 'ranger' && g12 === 'giantHunter',
+    giantHunter: weapon && cls === 'ranger' && g12 === 'giantHunter',
+    ricochet: weapon && cls === 'ranger' && g12 === 'ricochet',
+    typeOverride: weapon && cls === 'monk' && c.game >= 4,
+    contactless: weapon && cls === 'monk' && c.game >= 4,
+    runeOfWarrior: weapon && (c.artifacts || []).includes('runeOfWarrior'),
     runeOfElements: (c.artifacts || []).includes('runeOfElements'),
-    sacredWeapon: cls === 'cleric',
+    sacredWeapon: weapon && cls === 'cleric',
     // Настойку варит бард, а пьёт кто угодно; воодушевление бард раздаёт союзникам.
     // Поэтому оба эффекта доступны любому классу (плюс существуют как артефакты).
     tincture: true,

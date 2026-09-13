@@ -37,6 +37,19 @@ export function resolveMode(adv, dis) {
   return 'none';
 }
 
+// Один бросок атаки со всеми эффектами, которые правила относят к ЛЮБОЙ атаке,
+// а не только к удару оружием: Гениальность (+Интеллект союзника), Кроличья лапка
+// (переброс неудачного д20), Гарантированное попадание, Талант.
+// first — первый удар за ход: одноразовые эффекты тратятся только на нём.
+export function attackOnce(ctx, bonus, ac, mode, first) {
+  const m = ctx.mods || {};
+  if (first && m.guaranteedHit) return { hit: true, crit: false };
+  const b = bonus + (m.genius || 0);
+  let r = isHitWithTalent(ctx, attackRoll(ctx.rng, mode), b, ac);
+  if (!r.hit && first && m.rabbitFoot) r = isHitWithTalent(ctx, attackRoll(ctx.rng, mode), b, ac);
+  return r;
+}
+
 // Журнал кубов урона для Таланта; без включённого таланта — undefined, броски не пишутся.
 export const talentTally = (ctx) => (ctx.talent ? ctx.talent.tally : undefined);
 

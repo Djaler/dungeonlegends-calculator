@@ -1,4 +1,4 @@
-import { attackRoll, isHitWithTalent, resolveModeFor, rollNotation, rollDie, sumDice, talentTally } from '../engine.js';
+import { attackOnce, resolveModeFor, rollNotation, rollDie, sumDice, talentTally } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -27,8 +27,7 @@ export const ARTIFICER_ABILITIES = [
       const die = AMMO[ctx.params.ammo] || AMMO['усиленный'];
       const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
-      const nat = attackRoll(ctx.rng, mode);
-      const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[i].ac);
+      const { hit, crit } = attackOnce(ctx, bonus, ctx.targets[i].ac, mode, true);
       // болт без стата к урону (стат-мультипликатор урона вне данной модели)
       if (hit) out[i].push({ type: 'physical', amount: dmgDice(die, ctx, crit) + ctx.attackBonus('dex') });
       return out;
@@ -58,8 +57,7 @@ export const ARTIFICER_ABILITIES = [
       const i = ctx.params.target ?? 0;
       const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
-      const nat = attackRoll(ctx.rng, mode);
-      const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[i].ac);
+      const { hit, crit } = attackOnce(ctx, bonus, ctx.targets[i].ac, mode, true);
       // 1д6 урона; «сбивает с ног» вне модели урона
       if (hit) out[i].push({ type: 'physical', amount: dmgDice('1d6', ctx, crit) + bonus });
       return out;

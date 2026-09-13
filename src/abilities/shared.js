@@ -1,4 +1,4 @@
-import { rollNotation, attackRoll, isHitWithTalent, resolveModeFor, sumDice, talentTally } from '../engine.js';
+import { rollNotation, attackOnce, resolveModeFor, sumDice, talentTally } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -14,8 +14,7 @@ export function multiWeaponAttack(ctx, plan) {
   const rageF = m.barbRage ? 2 : 1;
   const extra = (m.runeOfWarrior ? 1 : 0) + (m.sacredWeapon || 0);
   const statBonus = ctx.attackBonus(ctx.weapon.stat) * rageF;
-  // Гениальность изобретателя / его браслет: союзник добавляет свой Интеллект к атаке.
-  const hitBonus = statBonus + extra + (m.genius || 0) - (m.gwm ? 5 : 0);
+  const hitBonus = statBonus + extra - (m.gwm ? 5 : 0);
   const dmgFlat = (m.gwm ? 10 : 0);
   const type = m.typeOverride || 'physical';
   const acIgnore = m.acIgnore || 0;
@@ -30,19 +29,13 @@ export function multiWeaponAttack(ctx, plan) {
     const ac = acIgnore > 0 ? Math.max(10, baseAc) : ctx.targets[idx].ac;
     let hit, crit = false;
     if (firstStrike && m.luckyCrit) {
-      const nat = attackRoll(ctx.rng, mode);
-      const r = isHitWithTalent(ctx, nat, hitBonus, ac);
+      // Промах превращается в крит, поэтому одноразовые спасения броска тут не нужны.
+      const r = attackOnce(ctx, hitBonus, ac, mode, false);
       if (r.hit) { hit = true; crit = r.crit; }   // попал обычно (или сам по себе крит)
       else { hit = true; crit = true; }            // промах -> считаем критом
     }
-    else if (firstStrike && m.guaranteedHit) { hit = true; }
     else {
-      const nat = attackRoll(ctx.rng, mode);
-      let r = isHitWithTalent(ctx, nat, hitBonus, ac);
-      // Кроличья лапка: перебросить неудачный д20 (один раз за ход).
-      if (!r.hit && firstStrike && m.rabbitFoot) {
-        r = isHitWithTalent(ctx, attackRoll(ctx.rng, mode), hitBonus, ac);
-      }
+      const r = attackOnce(ctx, hitBonus, ac, mode, firstStrike);
       hit = r.hit; crit = r.crit;
     }
     if (hit) {

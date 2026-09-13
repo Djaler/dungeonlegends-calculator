@@ -380,6 +380,8 @@ function initUI(root) {
     document.getElementById('mods').innerHTML =
       '<div class="sigils">' + toggles.map(([k, l, hint]) => {
         if (!rel[k]) return ''; // не показываем нерелевантные классовые моды
+        // Удвоение живёт внутри скрытной атаки: без неё тумблер ничего не делает.
+        if (k === 'sneakDouble' && !state.mods.sneak) return '';
         const disabled = k === 'orcReroll' && raceOrcReroll;
         const checked = k === 'orcReroll' && raceOrcReroll ? true : state.mods[k];
         const label = disabled ? l + ' <span style="font-size:.68rem;color:var(--rune-gold)">(авто)</span>' : l;
@@ -439,6 +441,11 @@ function initUI(root) {
         })() : '');
     qsa('[data-mod]').forEach((el) => el.onchange = () => {
       state.mods[el.dataset.mod] = el.checked;
+      // Скрытная атака показывает и прячет вложенное в неё удвоение.
+      if (el.dataset.mod === 'sneak') {
+        if (!el.checked) state.mods.sneakDouble = false;
+        renderMods();
+      }
       save(); run();
     });
     qsa('[data-runetype]').forEach((el) => el.onchange = () => {

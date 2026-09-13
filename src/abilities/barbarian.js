@@ -4,7 +4,7 @@ export const BARBARIAN_ABILITIES = [
   {
     id: 'deathDance', name: 'Танец со смертью', classKey: 'barbarian',
     minGame: 4, choiceGroup: null, charges: 'действие', targeting: 'area',
-    usesAttackRoll: true, usesSave: false, category: 'physical',
+    usesAttackRoll: true, usesSave: false, category: 'physical', weaponBased: true,
     params: [],
     simulateOnce(ctx) {
       // Рукопашная атака по каждой цели в области; цели получают половину урона от этих атак.

@@ -1,4 +1,4 @@
-import { attackRoll, isHitWithTalent, resolveModeFor, rollNotation, talentTally } from '../engine.js';
+import { attackOnce, resolveModeFor, rollNotation, talentTally } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -29,8 +29,7 @@ export const DRUID_ABILITIES = [
       const bonus = ctx.attackBonus(stat);
       const attacks = bear ? 2 : 1; // змеиный урон повторяется 2 хода — учитываем только немедленный
       for (let a = 0; a < attacks; a++) {
-        const nat = attackRoll(ctx.rng, mode);
-        const { hit, crit } = isHitWithTalent(ctx, nat, bonus, ctx.targets[i].ac);
+        const { hit, crit } = attackOnce(ctx, bonus, ctx.targets[i].ac, mode, a === 0);
         if (hit) out[i].push({ type: 'physical', amount: dmgDice(die, ctx, crit) + bonus });
       }
       return out;

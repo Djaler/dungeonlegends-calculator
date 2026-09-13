@@ -1,4 +1,4 @@
-import { attackRoll, isHitWithTalent, rollNotation, d20, sumDice, talentTally } from '../engine.js';
+import { attackRoll, rollNotation, d20, sumDice, talentTally } from '../engine.js';
 
 function empty(n) {
   return Array.from({ length: n }, () => []);

@@ -5,7 +5,7 @@ export const COMMON_ABILITIES = [
   {
     id: 'basicAttack', name: 'Базовая атака оружием', classKey: 'common',
     minGame: 1, choiceGroup: null, charges: 'без ограничений', targeting: 'single',
-    usesAttackRoll: true, usesSave: false, category: 'physical',
+    usesAttackRoll: true, usesSave: false, category: 'physical', weaponBased: true,
     params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
     simulateOnce(ctx) {
       const i = ctx.params.target ?? 0;
