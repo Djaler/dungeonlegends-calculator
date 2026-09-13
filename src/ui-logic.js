@@ -152,7 +152,7 @@ export function defaultState() {
     targets: [{ ac: 12, hp: 30, saves: { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: null, preset: null }],
     mods: { adv: false, dis: false, concentration: 0, chaos: false, hex: false, rage: false, orcReroll: false,
       barbRage: false, bonusAttack: false, smiteDice: 0, guaranteedHit: false, luckyCrit: false,
-      humanResolve: false,
+      resolveAbilityId: null,
       sneak: false, sneakDouble: false, gwm: false, giantHunter: false, ricochet: false,
       contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire' },
     pinned: false,

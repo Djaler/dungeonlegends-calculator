@@ -32,8 +32,11 @@ const workerCore = [core, simulator, `
 const ABILITY_MAP = Object.fromEntries(ABILITIES.map((a) => [a.id, a]));
 self.onmessage = (e) => {
   const { type, abilityId, baseCtx, opts } = e.data;
+  // Функции через postMessage не переносятся, поэтому второе действие Решительности
+  // приходит как id и разворачивается в способность здесь.
+  const runOpts = { ...opts, resolveAbility: opts.resolveAbilityId ? ABILITY_MAP[opts.resolveAbilityId] : null };
   if (type === 'run') {
-    const m = runAbility(ABILITY_MAP[abilityId], baseCtx, opts);
+    const m = runAbility(ABILITY_MAP[abilityId], baseCtx, runOpts);
     self.postMessage({ type: 'result', metrics: { ...m,
       groupFreq: [...m.groupFreq],
       targetFreq: m.targetFreq.map((f) => [...f]) } });
@@ -42,7 +45,7 @@ self.onmessage = (e) => {
     const list = (e.data.abilityIds && e.data.abilityIds.length)
       ? ABILITIES.filter((a) => e.data.abilityIds.includes(a.id))
       : ABILITIES;
-    self.postMessage({ type: 'comparison', rows: compareAbilities(list, baseCtx, opts) });
+    self.postMessage({ type: 'comparison', rows: compareAbilities(list, baseCtx, runOpts) });
   }
 };
 `].join('\n');

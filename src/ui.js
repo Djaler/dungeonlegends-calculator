@@ -360,7 +360,6 @@ function initUI(root) {
       ['guaranteedHit', 'Гарант. попадание (1 атака)', 'одна атака попадает автоматически'],
       ['luckyCrit', 'Фартовый (при промахе — крит)', 'при промахе атака преобразуется в критическое попадание'],
       ['bonusAttack', '+1 атака оружием', 'дополнительная атака оружием'],
-      ['humanResolve', 'Решительность (2-е действие, ½)', 'человек: способность повторяется вторым действием, её урон делится пополам'],
       ['sneak', 'Скрытная атака (из скрытности)', '+урон скрытной атаки из скрытности'],
       ['sneakDouble', 'Скрытная: ×2 (потеря скрытности)', 'двойной урон скрытной атаки с потерей скрытности'],
       ['contactless', 'Бесконтактный бой (маг)', 'тип урона оружием становится магическим'],
@@ -392,6 +391,19 @@ function initUI(root) {
             <option value="magic" ${(state.mods.runeType||'fire')==='magic'?'selected':''}>Магия</option>
           </select>
         </div>` : '')
+      + (rel.humanResolve ? (() => {
+          const sel = state.mods.resolveAbilityId || '';
+          const opts = availableAbilities(c)
+            .map((a) => `<option value="${a.id}" ${sel === a.id ? 'selected' : ''}>${a.name}</option>`)
+            .join('');
+          return `<div class="int-row" style="margin-top:10px">
+            <div class="cap"><b>Решительность: 2-е действие</b><span>урон второго действия делится пополам</span></div>
+            <select data-resolve style="width:auto">
+              <option value="" ${sel === '' ? 'selected' : ''}>— нет —</option>
+              ${opts}
+            </select>
+          </div>`;
+        })() : '')
       + (rel.concentration ? `<div class="int-row" style="margin-top:10px">
           <div class="cap"><b>Концентрация ×${state.mods.concentration}</b><span>+2d6 к урону за каждый заряд</span></div>
           <div class="stepper">
@@ -417,6 +429,10 @@ function initUI(root) {
     });
     qsa('[data-runetype]').forEach((el) => el.onchange = () => {
       state.mods.runeType = el.value;
+      save(); run();
+    });
+    qsa('[data-resolve]').forEach((el) => el.onchange = () => {
+      state.mods.resolveAbilityId = el.value || null;
       save(); run();
     });
     qsa('[data-conc]').forEach((b) => b.onclick = () => {
@@ -550,7 +566,6 @@ function initUI(root) {
         guaranteedHit: !!(rel.guaranteedHit && state.mods.guaranteedHit),
         luckyCrit: !!(rel.luckyCrit && state.mods.luckyCrit),
         bonusAttack: !!(rel.bonusAttack && state.mods.bonusAttack),
-        humanResolve: !!(rel.humanResolve && state.mods.humanResolve),
         sneak: !!(rel.sneak && state.mods.sneak),
         sneakDouble: !!(rel.sneak && state.mods.sneakDouble),
         ricochet: !!(rel.ricochet && state.mods.ricochet),
@@ -572,6 +587,15 @@ function initUI(root) {
   function run() {
     ensureParams();
     const opts = { trials: state.trials, seed: state.seed };
+    const a = currentAbility();
+    const rel = a ? modifierRelevance(a, state.character) : {};
+    const resolveId = rel.humanResolve ? state.mods.resolveAbilityId : null;
+    const resolveAbility = resolveId ? availableAbilities(state.character).find((x) => x.id === resolveId) : null;
+    if (resolveAbility) {
+      // Второе действие идёт со своими параметрами: цели у него могут быть иные.
+      opts.resolveAbilityId = resolveAbility.id;
+      opts.resolveParams = defaultParams(resolveAbility, state.targets);
+    }
     const ids = availableAbilities(state.character).map((a) => a.id);
     worker.postMessage({ type: 'run', abilityId: state.abilityId, baseCtx: baseCtx(), opts });
     worker.postMessage({ type: 'compare', baseCtx: baseCtx(), opts, abilityIds: ids });

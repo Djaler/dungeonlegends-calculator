@@ -4,6 +4,10 @@ import { applyPipeline } from './modifiers.js';
 export function runAbility(ability, baseCtx, opts) {
   const trials = opts.trials;
   const rng = makeRng(opts.seed);
+  // Второе действие Решительности приходит уже разрешённым объектом: симулятор
+  // намеренно не знает о каталоге способностей.
+  const resolveAbility = opts.resolveAbility || null;
+  const resolveParams = opts.resolveParams || {};
   const n = baseCtx.targets.length;
   const perTargetSum = new Array(n).fill(0);
   const killCount = new Array(n).fill(0);
@@ -15,11 +19,12 @@ export function runAbility(ability, baseCtx, opts) {
     const ctx = { ...baseCtx, rng };
     ctx.attackBonus = (stat) => (ctx.stats ? ctx.stats[stat] : 0);
     const packets = ability.simulateOnce(ctx);
-    if (ctx.mods.humanResolve) {
-      // Решительность (человек): второе действие тем же приёмом, его урон — половина.
+    if (resolveAbility) {
+      // Решительность (человек): второе действие за ход — своей способностью
+      // и со своими параметрами; его урон делится пополам.
       // Пакеты вливаются до пайплайна, чтобы разовые за ход прибавки (концентрация,
       // воодушевление) начислились один раз, а не по разу на действие.
-      const second = ability.simulateOnce(ctx);
+      const second = resolveAbility.simulateOnce({ ...ctx, params: resolveParams });
       second.forEach((arr, i) => {
         for (const p of arr) packets[i].push({ ...p, amount: Math.floor(p.amount / 2) });
       });
