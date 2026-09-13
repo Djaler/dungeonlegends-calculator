@@ -9,7 +9,7 @@ function dmgDice(notation, ctx, crit) {
   return crit ? one() + one() : one();
 }
 
-const AMMO = { 'усиленный': '2d8', 'гарпун': '1d4' };
+const AMMO = { 'усиленный': '1d8', 'гарпун': '1d4' };
 
 export const ARTIFICER_ABILITIES = [
   {
@@ -18,7 +18,7 @@ export const ARTIFICER_ABILITIES = [
     usesAttackRoll: true, usesSave: false, category: 'physical',
     params: [
       { id: 'ammo', kind: 'select', label: 'Наконечник', default: 'усиленный',
-        options: [{ value: 'усиленный', label: 'Усиленный (2д8)' }, { value: 'гарпун', label: 'Гарпун (1д4)' }] },
+        options: [{ value: 'усиленный', label: 'Усиленный (1д8)' }, { value: 'гарпун', label: 'Гарпун (1д4)' }] },
       { id: 'target', kind: 'targetPick', label: 'Цель', default: 0 },
     ],
     simulateOnce(ctx) {
@@ -44,6 +44,24 @@ export const ARTIFICER_ABILITIES = [
       for (let i = 0; i < ctx.targets.length; i++) {
         out[i].push({ type: 'fire', amount: sumDice(2, 6, ctx.rng, ctx.mods.orcReroll) });
       }
+      return out;
+    },
+  },
+  {
+    id: 'forceBolt', name: 'Силовой болт (Весомый аргумент)', classKey: 'artificer',
+    minGame: 12, choiceGroup: 'game12', choiceId: 'flamethrower',
+    charges: 'действие', targeting: 'single',
+    usesAttackRoll: true, usesSave: false, category: 'physical',
+    params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
+    simulateOnce(ctx) {
+      const out = empty(ctx.targets.length);
+      const i = ctx.params.target ?? 0;
+      const mode = resolveMode(ctx.mods.adv, ctx.mods.dis);
+      const bonus = ctx.attackBonus('dex');
+      const nat = attackRoll(ctx.rng, mode);
+      const { hit, crit } = isHit(nat, bonus, ctx.targets[i].ac, ctx.critRange);
+      // 1д6 урона; «сбивает с ног» вне модели урона
+      if (hit) out[i].push({ type: 'physical', amount: dmgDice('1d6', ctx, crit) + bonus });
       return out;
     },
   },

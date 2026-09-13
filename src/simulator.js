@@ -15,6 +15,15 @@ export function runAbility(ability, baseCtx, opts) {
     const ctx = { ...baseCtx, rng };
     ctx.attackBonus = (stat) => (ctx.stats ? ctx.stats[stat] : 0);
     const packets = ability.simulateOnce(ctx);
+    if (ctx.mods.humanResolve) {
+      // Решительность (человек): второе действие тем же приёмом, его урон — половина.
+      // Пакеты вливаются до пайплайна, чтобы разовые за ход прибавки (концентрация,
+      // воодушевление) начислились один раз, а не по разу на действие.
+      const second = ability.simulateOnce(ctx);
+      second.forEach((arr, i) => {
+        for (const p of arr) packets[i].push({ ...p, amount: Math.floor(p.amount / 2) });
+      });
+    }
     const dmg = applyPipeline(packets, ctx);
     let group = 0;
     for (let i = 0; i < n; i++) {

@@ -37,6 +37,47 @@ test('runAbility считает killCount и killChance', () => {
   assert.equal(killChance(m, 0), 1);
 });
 
+test('Решительность: второе действие добавляет половину урона (вниз)', () => {
+  const ability = {
+    id: 'r', name: 'R', charges: '',
+    simulateOnce: () => [[{ type: 'physical', amount: 7 }]],
+  };
+  // 7 + floor(7/2)=3 -> 10
+  const m = runAbility(ability, baseCtx({ mods: { humanResolve: true } }), { trials: 10, seed: 3 });
+  assert.equal(m.groupMean, 10);
+});
+
+test('Решительность: выключена по умолчанию', () => {
+  const ability = {
+    id: 'r2', name: 'R2', charges: '',
+    simulateOnce: () => [[{ type: 'physical', amount: 7 }]],
+  };
+  const m = runAbility(ability, baseCtx(), { trials: 10, seed: 3 });
+  assert.equal(m.groupMean, 7);
+});
+
+test('Решительность: способность прогоняется дважды за прогон', () => {
+  let calls = 0;
+  const ability = {
+    id: 'r3', name: 'R3', charges: '',
+    simulateOnce: () => { calls++; return [[]]; },
+  };
+  runAbility(ability, baseCtx({ mods: { humanResolve: true } }), { trials: 5, seed: 1 });
+  assert.equal(calls, 10);
+});
+
+test('Решительность: killCount учитывает оба действия', () => {
+  const ability = {
+    id: 'r4', name: 'R4', charges: '',
+    simulateOnce: () => [[{ type: 'physical', amount: 20 }]],
+  };
+  // 20 + 10 = 30 >= hp 30
+  const hit = runAbility(ability, baseCtx({ targets: [{ ac: 12, hp: 30 }], mods: { humanResolve: true } }), { trials: 20, seed: 1 });
+  assert.equal(hit.killCount[0], 20);
+  const miss = runAbility(ability, baseCtx({ targets: [{ ac: 12, hp: 30 }] }), { trials: 20, seed: 1 });
+  assert.equal(miss.killCount[0], 0);
+});
+
 test('runAbility отдаёт распределение по каждой цели', () => {
   // две цели с фиксированным уроном 7 и 3 -> у каждой свой одноточечный freq
   const ability = {

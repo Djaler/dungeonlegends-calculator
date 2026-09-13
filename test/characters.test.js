@@ -10,6 +10,15 @@ test('CLASSES: волшебник имеет полный набор стато�
   assert.deepEqual(w.stats, { str: -2, dex: 0, con: -1, wis: 2, int: 4, cha: 1 });
 });
 
+test('CLASSES: изобретатель — броня 15, здоровье 15, арбалет 1д8(dex)', () => {
+  const a = CLASSES.artificer;
+  assert.equal(a.ac, 15);
+  assert.equal(a.hp, 15);
+  assert.equal(a.dice, '1d8');
+  assert.equal(a.weaponStat, 'dex');
+  assert.deepEqual(a.stats, { str: -1, dex: 2, con: 0, wis: 0, int: 4, cha: -1 });
+});
+
 test('deriveStats: орк-волшебник на 1 игре = база класса + расовые правки', () => {
   // орк не меняет статы (statMods пуст); дварф бы дал dex-1
   assert.deepEqual(deriveStats('wizard', 'orc', 1),

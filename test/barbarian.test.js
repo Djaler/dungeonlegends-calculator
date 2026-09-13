@@ -12,20 +12,41 @@ const ctx = (over) => {
     params: over.params || {} };
 };
 
-test('Танец: провал спасброска = урон атаки (куб+Сила)', () => {
-  // спас nat = floor(0*20)+1 =1 -> провал; урон d12 0.99->12 +4 =16
-  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0, 0.99]) }));
-  assert.deepEqual(p, [[{ type: 'physical', amount: 16 }]]);
+test('Танец: атака по цели, урон делится пополам', () => {
+  // атака nat 0.5 (=11, +4>=10 попал); урон d12 0.99->12 +4 =16; половина =8
+  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0.5, 0.99]) }));
+  assert.deepEqual(p, [[{ type: 'physical', amount: 8 }]]);
 });
 
-test('Танец: успех спасброска = нет урона', () => {
-  // спас nat=20 (0.99) -> успех -> пакет пуст
-  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0.99]) }));
+test('Танец: промах не даёт пакета', () => {
+  // nat 1 (0) -> промах; кубы урона не бросаются
+  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0]) }));
   assert.deepEqual(p, [[]]);
 });
 
-test('Танец: ярость варвара удваивает Силу в уроне', () => {
-  // провал nat 0; урон d12 0.99->12 + 4*2 =20
-  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0, 0.99]), mods: { barbRage: true } }));
-  assert.deepEqual(p, [[{ type: 'physical', amount: 20 }]]);
+test('Танец: по одной атаке на каждую цель в области', () => {
+  // на цель по паре бросков: атака 0.5, урон 0.99 -> (12+4)/2 =8
+  const p = get('deathDance').simulateOnce(ctx({
+    rng: seqRng([0.5, 0.99, 0.5, 0.99]),
+    targets: [{ ac: 10, hp: 99 }, { ac: 10, hp: 99 }],
+  }));
+  assert.deepEqual(p, [[{ type: 'physical', amount: 8 }], [{ type: 'physical', amount: 8 }]]);
+});
+
+test('Танец: крит удваивает кубы оружия, затем половина', () => {
+  // nat 20 (0.99) -> крит; d12+d12 (0.99,0.99)=24 +4 =28; половина =14
+  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0.99, 0.99, 0.99]) }));
+  assert.deepEqual(p, [[{ type: 'physical', amount: 14 }]]);
+});
+
+test('Танец: ярость варвара удваивает Силу до деления пополам', () => {
+  // атака nat 11 (+8); урон d12 0.99->12 + 4*2 =20; половина =10
+  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0.5, 0.99]), mods: { barbRage: true } }));
+  assert.deepEqual(p, [[{ type: 'physical', amount: 10 }]]);
+});
+
+test('Танец: нечётный урон округляется вниз', () => {
+  // урон d12 0.5->7 +4 =11; половина = floor(5.5) =5
+  const p = get('deathDance').simulateOnce(ctx({ rng: seqRng([0.5, 0.5]) }));
+  assert.deepEqual(p, [[{ type: 'physical', amount: 5 }]]);
 });

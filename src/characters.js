@@ -8,7 +8,7 @@ export const CLASSES = {
   paladin:    { name: 'Паладин',      ac: 17, hp: 20, dice: '1d10', weaponStat: 'str', stats: { str: 3,  dex: -2, con: 2,  wis: 0,  int: -1, cha: 2  } },
   druid:      { name: 'Друид',        ac: 10, hp: 25, dice: '1d4',  weaponStat: 'dex', stats: { str: 2,  dex: 2,  con: 0,  wis: 2,  int: 0,  cha: -2 } },
   wizard:     { name: 'Волшебник',    ac: 10, hp: 15, dice: '1d4',  weaponStat: 'dex', stats: { str: -2, dex: 0,  con: -1, wis: 2,  int: 4,  cha: 1  } },
-  artificer:  { name: 'Изобретатель', ac: 15, hp: 15, dice: '2d8',  weaponStat: 'dex', stats: { str: -1, dex: 2,  con: 0,  wis: 0,  int: 4,  cha: -1 } },
+  artificer:  { name: 'Изобретатель', ac: 15, hp: 15, dice: '1d8',  weaponStat: 'dex', stats: { str: -1, dex: 2,  con: 0,  wis: 0,  int: 4,  cha: -1 } },
   cleric:     { name: 'Жрец',         ac: 15, hp: 20, dice: '1d6',  weaponStat: 'dex', stats: { str: -1, dex: -1, con: 4,  wis: 0,  int: 1,  cha: 1  } },
   bard:       { name: 'Бард',         ac: 12, hp: 25, dice: '1d6',  weaponStat: 'dex', stats: { str: 0,  dex: 1,  con: -1, wis: -1, int: 1,  cha: 4  } },
   ranger:     { name: 'Следопыт',     ac: 12, hp: 20, dice: '1d8',  weaponStat: 'dex', stats: { str: -1, dex: 3,  con: 1,  wis: 3,  int: -1, cha: -1 } },

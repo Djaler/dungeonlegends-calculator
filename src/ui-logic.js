@@ -7,7 +7,8 @@ export function availableAbilities(character) {
     if (a.classKey !== 'common' && a.classKey !== character.classKey && (!character.raceKey || a.raceKey !== character.raceKey)) return false;
     if (a.minGame > character.game) return false;
     if (a.choiceGroup === 'game12') {
-      return character.game >= 12 && character.game12Choice === a.id;
+      // choiceId позволяет одному выбору дать несколько способностей (Весомый аргумент).
+      return character.game >= 12 && character.game12Choice === (a.choiceId || a.id);
     }
     return true;
   });
@@ -72,7 +73,7 @@ export const GAME12_CHOICES = {
   monk:      [{ id: 'kiBoost', name: 'Усиление Ци (1д6)' }, { id: 'balance', name: 'Часть баланса' }],
   wizard:    [{ id: 'unknownAttack', name: 'Неизвестная атака' }, { id: 'counterspell', name: 'Контрзаклинание' }],
   druid:     [{ id: 'beastRage', name: 'Ярость зверя (кубы форм↑)' }, { id: 'windGust', name: 'Порыв ветра' }],
-  artificer: [{ id: 'flamethrower', name: 'Весомый аргумент (огнемёт 2д6)' }, { id: 'unstableArgument', name: 'Нестабильный аргумент' }],
+  artificer: [{ id: 'flamethrower', name: 'Весомый аргумент (огнемёт 2д6 + болт 1д6)' }, { id: 'unstableArgument', name: 'Нестабильный аргумент' }],
   cleric:    [{ id: 'divineLight', name: 'Божественный свет (1д4+Ст, излуч.)' }, { id: 'strongFaith', name: 'Укрепление веры' }],
   necromancer: [{ id: 'harvest', name: 'Жатва' }, { id: 'soulMaster', name: 'Мастер душ' }],
 };
@@ -117,6 +118,7 @@ export function modifierRelevance(ability, character) {
     bonusAttack: cls === 'warrior' || (cls === 'paladin' && g12 === 'extraAttack') || (cls === 'ranger' && c.game >= 4),
     smiteDice: cls === 'paladin',
     guaranteedHit: cls === 'ranger' || c.raceKey === 'elf',
+    humanResolve: c.raceKey === 'human',
     luckyCrit: cls === 'rogue' && c.game >= 12 && c.game12Choice === 'lucky',
     sneak: cls === 'rogue',
     sneakDouble: cls === 'rogue',
@@ -150,6 +152,7 @@ export function defaultState() {
     targets: [{ ac: 12, hp: 30, saves: { str: 0, dex: 0, con: 0, wis: 0, int: 0, cha: 0 }, race: null, preset: null }],
     mods: { adv: false, dis: false, concentration: 0, chaos: false, hex: false, rage: false, orcReroll: false,
       barbRage: false, bonusAttack: false, smiteDice: 0, guaranteedHit: false, luckyCrit: false,
+      humanResolve: false,
       sneak: false, sneakDouble: false, gwm: false, giantHunter: false, ricochet: false,
       contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire' },
     pinned: false,

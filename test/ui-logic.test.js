@@ -103,6 +103,29 @@ test('availableAbilities: не-дварф НЕ видит Тяжёлую гол�
   assert.ok(!ids.includes('dwarfHeadbutt'));
 });
 
+test('modifierRelevance: humanResolve — true только для человека', () => {
+  const ba = availableAbilities({ classKey: 'warrior', game: 1, game12Choice: null })[0];
+  assert.equal(modifierRelevance(ba, { classKey: 'warrior', raceKey: 'human', game: 1 }).humanResolve, true);
+  assert.equal(modifierRelevance(ba, { classKey: 'warrior', raceKey: 'orc', game: 1 }).humanResolve, false);
+});
+
+test('availableAbilities: Весомый аргумент даёт и огнемёт, и силовой болт', () => {
+  const ids = availableAbilities({classKey:'artificer',game:12,game12Choice:'flamethrower'}).map(a=>a.id);
+  assert.ok(ids.includes('flamethrower'));
+  assert.ok(ids.includes('forceBolt'));
+  assert.ok(!ids.includes('unstableArgument'));
+});
+test('availableAbilities: Нестабильный аргумент не даёт силовой болт', () => {
+  const ids = availableAbilities({classKey:'artificer',game:12,game12Choice:'unstableArgument'}).map(a=>a.id);
+  assert.ok(ids.includes('unstableArgument'));
+  assert.ok(!ids.includes('forceBolt'));
+  assert.ok(!ids.includes('flamethrower'));
+});
+test('availableAbilities: силовой болт недоступен до 12 игры', () => {
+  const ids = availableAbilities({classKey:'artificer',game:4,game12Choice:'flamethrower'}).map(a=>a.id);
+  assert.ok(!ids.includes('forceBolt'));
+});
+
 test('critRangeForCharacter: Наручи удачи дают 19', () => {
   assert.equal(critRangeForCharacter({classKey:'wizard',game:1,artifacts:['braceletsOfLuck']}), 19);
   assert.equal(critRangeForCharacter({classKey:'warrior',game:12,game12Choice:'weakSpot',artifacts:['braceletsOfLuck']}), 18);
