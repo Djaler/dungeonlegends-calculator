@@ -91,8 +91,8 @@ test('modifierRelevance: концентрация только для магич
   assert.equal(modifierRelevance(staff, { classKey: 'wizard', game: 4 }).concentration, false);
 });
 
-test('critRangeForCharacter: Слабое место даёт 18 на 12 игре', () => {
-  assert.equal(critRangeForCharacter({ classKey: 'warrior', game: 12, game12Choice: 'weakSpot' }), 18);
+test('critRangeForCharacter: Слабое место даёт 19 на 12 игре', () => {
+  assert.equal(critRangeForCharacter({ classKey: 'warrior', game: 12, game12Choice: 'weakSpot' }), 19);
   assert.equal(critRangeForCharacter({ classKey: 'warrior', game: 12, game12Choice: 'masterFencer' }), 20);
   assert.equal(critRangeForCharacter({ classKey: 'warrior', game: 8, game12Choice: 'weakSpot' }), 20);
 });
@@ -147,7 +147,7 @@ test('availableAbilities: силовой болт недоступен до 12 �
 
 test('critRangeForCharacter: Наручи удачи дают 19', () => {
   assert.equal(critRangeForCharacter({classKey:'wizard',game:1,artifacts:['braceletsOfLuck']}), 19);
-  assert.equal(critRangeForCharacter({classKey:'warrior',game:12,game12Choice:'weakSpot',artifacts:['braceletsOfLuck']}), 18);
+  assert.equal(critRangeForCharacter({classKey:'warrior',game:12,game12Choice:'weakSpot',artifacts:['braceletsOfLuck']}), 19);
 });
 
 test('ARTIFACTS: влияющие на урон артефакты правил, без hint', () => {

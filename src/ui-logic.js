@@ -65,7 +65,7 @@ export function defaultParams(ability, targets) {
 
 // Выборы 12-й игры по классу.
 export const GAME12_CHOICES = {
-  warrior:   [{ id: 'weakSpot', name: 'Слабое место (крит 18–20)' }, { id: 'masterFencer', name: 'Мастер фехтования' }],
+  warrior:   [{ id: 'weakSpot', name: 'Слабое место (крит 19–20)' }, { id: 'masterFencer', name: 'Мастер фехтования' }],
   barbarian: [{ id: 'gwm', name: 'Мастер большого оружия (−5/+10)' }, { id: 'unbreakable', name: 'Несокрушимый' }],
   rogue:     [{ id: 'lucky', name: 'Фартовый (промах→крит)' }, { id: 'traumatic', name: 'Травмоопасный' }],
   paladin:   [{ id: 'extraAttack', name: 'Дополнительная атака' }, { id: 'improvedSmite', name: 'Улучшенная кара (6д10)' }],
@@ -107,7 +107,7 @@ export const ARTIFACTS = [
 export function critRangeForCharacter(c) {
   // Кицунэ «выбрали баланс»: критических успехов нет вообще — порог недостижим.
   if (RACES[c.raceKey] && RACES[c.raceKey].noCrit && !hasRingOfLegend(c)) return 21;
-  let r = (c.classKey === 'warrior' && c.game >= 12 && c.game12Choice === 'weakSpot') ? 18 : 20;
+  let r = (c.classKey === 'warrior' && c.game >= 12 && c.game12Choice === 'weakSpot') ? 19 : 20;
   if (c.artifacts && c.artifacts.includes('braceletsOfLuck')) r = Math.min(r, 19);
   return r;
 }
