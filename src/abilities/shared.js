@@ -1,4 +1,4 @@
-import { rollNotation, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared } from '../engine.js';
+import { rollNotation, rollDie, d20, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -31,6 +31,7 @@ export function multiWeaponAttack(ctx, plan) {
   const type = m.typeOverride || 'physical';
   const acIgnore = m.acIgnore || 0;
   let firstHitDone = false;     // для смайта (один раз)
+  let reaperDone = false;       // Губитель — одна реакция, на первое попадание
   let firstStrike = true;       // первый удар плана — для guaranteedHit/скрытной
   let ricochetSource = -1;      // индекс цели первого попадания (для рикошета)
   let ricochetPacket = null;    // пакет того самого выстрела — дублируется только он
@@ -61,6 +62,9 @@ export function multiWeaponAttack(ctx, plan) {
         amount += ctx.attackBonus(ctx.weapon.stat);
         if (m.sneakDouble) amount *= 2;
       }
+      // Губитель: реакцией прибавить к урону д20 здоровья (цена здоровьем вне модели).
+      // Это куб — Талант к нему применим, а орочий переброс (только кубы урона) — нет.
+      if (m.reaper && !reaperDone) { amount += rollDie(20, ctx.rng, false, talentTally(ctx)); reaperDone = true; }
       out[idx].push({ type, amount });
       if (ricochetSource < 0) { ricochetSource = idx; ricochetPacket = { type, amount }; }
       if (!firstHitDone && (m.smiteDice || 0) > 0) {

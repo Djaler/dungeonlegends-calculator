@@ -213,3 +213,25 @@ test('Священное оружие: +Стойкость к урону ору�
   const p = multiWeaponAttack(ctx({ rng: seqRng([0.5,0.99]), mods:{ sacredWeapon:4 } }), [0]);
   assert.deepEqual(p, [[{type:'physical',amount:17}]]);
 });
+
+test('Губитель: +д20 к урону первого попадания, только один раз', () => {
+  // атака 1: nat 11 попал, d10=10 +3 = 13, Губитель d20 (0.49 -> 10) = 23
+  // атака 2: nat 11 попал, d10=10 +3 = 13, без Губителя
+  const p = multiWeaponAttack(ctx({ rng: seqRng([0.5, 0.99, 0.49, 0.5, 0.99]), mods: { reaper: true } }), [0, 0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 23 }, { type: 'physical', amount: 13 }]]);
+});
+
+test('Губитель: после промаха достаётся первому попаданию', () => {
+  // атака 1: nat 1 промах; атака 2: nat 11, d10=10 +3 + d20(10) = 23
+  const p = multiWeaponAttack(ctx({ rng: seqRng([0, 0.5, 0.99, 0.49]), mods: { reaper: true } }), [0, 0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 23 }]]);
+});
+
+test('Губитель: д20 попадает в журнал Таланта, орочий переброс его не трогает', () => {
+  // d20 0.05 -> 2: с орочьим перебросом был бы переброшен, но это не куб урона
+  const c = ctx({ rng: seqRng([0.5, 0.99, 0.05]), mods: { reaper: true, orcReroll: true } });
+  c.talent = { left: 1, tally: [] };
+  const p = multiWeaponAttack(c, [0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 15 }]]); // 10 + 3 + 2
+  assert.deepEqual(c.talent.tally.at(-1), { sides: 20, roll: 2 });
+});

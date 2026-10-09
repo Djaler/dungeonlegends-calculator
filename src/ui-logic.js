@@ -75,7 +75,7 @@ export const GAME12_CHOICES = {
   druid:     [{ id: 'beastRage', name: 'Ярость зверя (кубы форм↑)' }, { id: 'windGust', name: 'Порыв ветра' }],
   artificer: [{ id: 'flamethrower', name: 'Весомый аргумент (огнемёт 2д6 + болт 1д6)' }, { id: 'unstableArgument', name: 'Нестабильный аргумент' }],
   cleric:    [{ id: 'divineLight', name: 'Божественный свет (1д4+Ст, излуч.)' }, { id: 'strongFaith', name: 'Укрепление веры' }],
-  necromancer: [{ id: 'harvest', name: 'Жатва' }, { id: 'soulMaster', name: 'Мастер душ' }],
+  necromancer: [{ id: 'harvest', name: 'Жатва' }, { id: 'reaper', name: 'Губитель (+д20 к урону оружием)' }],
 };
 
 // Оружие персонажа с учётом выборов [12].
@@ -162,6 +162,7 @@ export function modifierRelevance(ability, character) {
     acIgnore: weapon && cls === 'ranger' && g12 === 'giantHunter',
     giantHunter: weapon && cls === 'ranger' && g12 === 'giantHunter',
     ricochet: weapon && cls === 'ranger' && g12 === 'ricochet',
+    reaper: weapon && cls === 'necromancer' && g12 === 'reaper',
     typeOverride: weapon && cls === 'monk' && c.game >= 4,
     contactless: weapon && cls === 'monk' && c.game >= 4,
     runeOfWarrior: weapon && (c.artifacts || []).includes('runeOfWarrior'),
@@ -192,7 +193,7 @@ export function defaultState() {
       barbRage: false, bonusAttack: false, smiteDice: 0, guaranteedHit: false, luckyCrit: false,
       resolveAbilityId: null, genius: 0, talent: false, rabbitFoot: false,
       sneak: false, sneakDouble: false, gwm: false, giantHunter: false, ricochet: false,
-      contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire' },
+      contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire', reaper: false },
     pinned: false,
     trials: 100000,
     seed: 1,

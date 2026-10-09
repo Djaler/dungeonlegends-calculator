@@ -375,6 +375,7 @@ function initUI(root) {
       ['inspiration', 'Воодушевление (+д6)', 'бард влил вам д6 к урону: +1d6 первой цели с уроном'],
       ['tincture', 'Настойка: смелость (×2)', 'вы выпили настойку и выпало «3»: удваивает весь урон за ход'],
       ['talent', 'Талант (+3 к кубам)', '16-я игра: до 3 раз за ход, к одному кубу — один раз; сначала спасает промахи, остаток — в самые низкие кубы урона'],
+      ['reaper', 'Губитель (+д20)', '12-я игра: реакцией платите д20 здоровья и прибавляете их к урону первого попадания оружием'],
       ['rabbitFoot', 'Кроличья лапка (переброс)', 'артефакт: перебросить неудачный бросок атаки'],
     ];
     document.getElementById('mods').innerHTML =
@@ -624,6 +625,7 @@ function initUI(root) {
         tincture: !!(rel.tincture && state.mods.tincture),
         inspiration: !!(rel.inspiration && state.mods.inspiration),
         beastRage: !!rel.beastRage,
+        reaper: !!(rel.reaper && state.mods.reaper),
       },
       params: state.params,
     };

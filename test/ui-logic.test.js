@@ -265,3 +265,20 @@ test('luckyCrit: только для rogue game>=12 с выбором lucky', ()
   assert.equal(modifierRelevance(rogueAb, { classKey: 'rogue', game: 1, game12Choice: null }).luckyCrit, false);
   assert.equal(modifierRelevance(rogueAb, { classKey: 'ranger', game: 12, game12Choice: 'lucky' }).luckyCrit, false);
 });
+
+test('GAME12_CHOICES: у некроманта Жатва и Губитель', () => {
+  assert.deepEqual(GAME12_CHOICES.necromancer.map((x) => x.id), ['harvest', 'reaper']);
+});
+
+test('Губитель показан некроманту 12-й игры на атаке оружием', () => {
+  const c = { classKey: 'necromancer', raceKey: 'elf', game: 12, game12Choice: 'reaper', artifacts: [] };
+  const basic = availableAbilities(c).find((a) => a.id === 'basicAttack');
+  assert.equal(modifierRelevance(basic, c).reaper, true);
+  assert.equal(modifierRelevance(basic, { ...c, game12Choice: 'harvest' }).reaper, false);
+});
+
+test('старый выбор soulMaster не ломает список способностей', () => {
+  const ids = availableAbilities({ classKey: 'necromancer', game: 12, game12Choice: 'soulMaster' }).map((a) => a.id);
+  assert.ok(ids.includes('pathToOblivion'));
+  assert.ok(!ids.includes('harvest'));
+});

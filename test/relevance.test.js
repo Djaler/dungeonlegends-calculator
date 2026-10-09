@@ -42,6 +42,7 @@ const OFF_MODS = {
   acIgnore: 0, giantHunter: false, ricochet: false, typeOverride: undefined, contactless: false,
   runeOfWarrior: false, runeOfElements: false, runeType: 'fire', sacredWeapon: 0,
   tincture: false, inspiration: false, resolveAbilityId: null,
+  reaper: false,
 };
 
 // Наборы целей: разный КБ ловит модификаторы попадания, расы — те, что меняют
