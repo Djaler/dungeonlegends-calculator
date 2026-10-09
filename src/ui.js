@@ -385,6 +385,8 @@ function initUI(root) {
         if (!rel[k]) return ''; // не показываем нерелевантные классовые моды
         // Удвоение живёт внутри скрытной атаки: без неё тумблер ничего не делает.
         if (k === 'sneakDouble' && !state.mods.sneak) return '';
+        // С Бесконтактным боем урон монаха магический — Могучему (+д4 к физическому) не к чему прибавляться.
+        if (k === 'mighty' && rel.contactless && state.mods.contactless) return '';
         const disabled = k === 'orcReroll' && raceOrcReroll;
         const checked = k === 'orcReroll' && raceOrcReroll ? true : state.mods[k];
         const label = disabled ? l + ' <span style="font-size:.68rem;color:var(--rune-gold)">(авто)</span>' : l;
@@ -459,8 +461,8 @@ function initUI(root) {
         if (!el.checked) state.mods.sneakDouble = false;
         renderMods();
       }
-      // Сглаз показывает и прячет выбор цели.
-      if (el.dataset.mod === 'hex') renderMods();
+      // Сглаз показывает и прячет выбор цели, Бесконтактный бой — тумблер Могучего.
+      if (el.dataset.mod === 'hex' || el.dataset.mod === 'contactless') renderMods();
       save(); run();
     });
     qsa('[data-runetype]').forEach((el) => el.onchange = () => {
