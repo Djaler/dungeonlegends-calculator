@@ -1,4 +1,4 @@
-import { sumDice, talentTally, rollShared } from '../engine.js';
+import { sumDice, talentTally, rollShared, d20, isHitWithTalent } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -34,6 +34,21 @@ export const RACIAL_ABILITIES = [
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
       out[ctx.params.target ?? 0].push({ type: 'fire', amount: sumDice(1, 8, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
+      return out;
+    },
+  },
+  {
+    id: 'dhampirBite', name: 'Вампиризм', raceKey: 'dhampir', classKey: null,
+    minGame: 1, choiceGroup: null, charges: 'бонусное действие', targeting: 'single',
+    usesAttackRoll: false, usesSave: false, category: 'physical',
+    params: [{ id: 'target', kind: 'targetPick', label: 'Цель', default: 0 }],
+    simulateOnce(ctx) {
+      // Схватить — проверка «ловкость — 12»; это не атака, поэтому крит только на 20,
+      // но Талант может её дотянуть. Затем 1д6 урона цели (лечение себе вне модели).
+      const out = empty(ctx.targets.length);
+      const check = { ...ctx, critRange: 20, fumbleRange: 1 };
+      const { hit } = isHitWithTalent(check, d20(ctx.rng), ctx.attackBonus('dex'), 12);
+      if (hit) out[ctx.params.target ?? 0].push({ type: 'physical', amount: sumDice(1, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
       return out;
     },
   },

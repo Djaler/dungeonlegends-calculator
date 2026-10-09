@@ -34,6 +34,8 @@ export const RACES = {
   // mighty — «Могучий»: д4 к своему физическому урону (тумблер).
   // saveDis — слабость «Громоздкий»: помеха к проверкам Ловкости, когда голиаф — цель спасброска.
   goliath:    { name: 'Голиаф',           hpMod: 0,  acMod: 0, statMods: {}, mighty: true, saveDis: { dex: true } },
+  // Слабость «Нежить» (лечение ранит) вне модели урона.
+  dhampir:    { name: 'Дампир',           hpMod: 0,  acMod: 0, statMods: {} },
 };
 
 export const MILESTONES = [4, 8, 12, 16, 20];

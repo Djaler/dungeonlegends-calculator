@@ -76,3 +76,8 @@ test('Голиаф: без правок статов, с Могучим и по�
   assert.deepEqual(RACES.goliath.saveDis, { dex: true });
   assert.deepEqual(computePreset('goliath', 'warrior', 1), { ac: 15, hp: 25, saves: { str: 3, dex: 1, con: 1, wis: 0, int: 0, cha: -1 } });
 });
+
+test('Дампир: без правок статов и здоровья', () => {
+  assert.equal(RACES.dhampir.name, 'Дампир');
+  assert.deepEqual(computePreset('dhampir', 'rogue', 1), { ac: 12, hp: 15, saves: { str: -2, dex: 4, con: -1, wis: 2, int: 0, cha: 1 } });
+});
