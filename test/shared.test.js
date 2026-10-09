@@ -235,3 +235,34 @@ test('Губитель: д20 попадает в журнал Таланта, о
   assert.deepEqual(p, [[{ type: 'physical', amount: 15 }]]); // 10 + 3 + 2
   assert.deepEqual(c.talent.tally.at(-1), { sides: 20, roll: 2 });
 });
+
+const bard = { str: 0, dex: 1, con: -1, wis: -1, int: 1, cha: 4 };
+const bardWeapon = { dice: '1d6', stat: 'dex' };
+const blade = (rng) => ctx({ rng: seqRng(rng), stats: bard, weapon: bardWeapon, mods: { enchantedBlade: true } });
+
+test('Очарованный клинок: физика оружия остаётся, сверху магия куб клинка + Хар', () => {
+  // проверка nat 11 +4 = 15 -> д10; атака nat 11 +1 >= 10; д6 = 6 +1 = 7 физ; д10 = 10 +4 = 14 маг
+  const p = multiWeaponAttack(blade([0.5, 0.5, 0.99, 0.99]), [0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 14 }]]);
+});
+
+test('Очарованный клинок: натуральная 1 на проверке -> д4', () => {
+  const p = multiWeaponAttack(blade([0, 0.5, 0.99, 0.99]), [0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 8 }]]); // д4 = 4 +4
+});
+
+test('Очарованный клинок: на крите удваиваются оба куба', () => {
+  // проверка 15 -> д10; атака nat 20; 2×д6 = 12 +1 = 13 физ; 2×д10 = 20 +4 = 24 маг
+  const p = multiWeaponAttack(blade([0.5, 0.99, 0.99, 0.99, 0.99, 0.99]), [0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 13 }, { type: 'magic', amount: 24 }]]);
+});
+
+test('Очарованный клинок: промах — ни физики, ни магии', () => {
+  const p = multiWeaponAttack(blade([0.5, 0]), [0]);
+  assert.deepEqual(p, [[]]);
+});
+
+test('Очарованный клинок действует только на первую атаку плана', () => {
+  const p = multiWeaponAttack(blade([0.5, 0.5, 0.99, 0.99, 0.5, 0.99]), [0, 0]);
+  assert.deepEqual(p, [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 14 }, { type: 'physical', amount: 7 }]]);
+});

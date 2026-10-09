@@ -2,6 +2,15 @@ import { rollNotation, rollDie, d20, attackOnce, resolveModeFor, sumDice, talent
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
+// Очарованный клинок: итог проверки Харизмы задаёт куб дополнительного магического урона.
+function bladeDie(nat, total) {
+  if (nat === 1 || total <= 1) return 4;
+  if (total >= 20) return 12;
+  if (total >= 15) return 10;
+  if (total >= 10) return 8;
+  return 6;
+}
+
 // Область со спасброском «ловкость — 15»: каждая цель спасается сама, а урон кидается
 // один раз на всех — провалившие получают его целиком, спасшиеся половину.
 export function dexSaveBlast(ctx, out, nDice, type) {
@@ -32,6 +41,12 @@ export function multiWeaponAttack(ctx, plan) {
   const acIgnore = m.acIgnore || 0;
   let firstHitDone = false;     // для смайта (один раз)
   let reaperDone = false;       // Губитель — одна реакция, на первое попадание
+  // Клинок напевают перед атакой: проверка бросается до первого удара.
+  let blade = 0;
+  if (m.enchantedBlade) {
+    const nat = d20(ctx.rng);
+    blade = bladeDie(nat, nat + ctx.attackBonus('cha'));
+  }
   let firstStrike = true;       // первый удар плана — для guaranteedHit/скрытной
   let ricochetSource = -1;      // индекс цели первого попадания (для рикошета)
   let ricochetPacket = null;    // пакет того самого выстрела — дублируется только он
@@ -52,8 +67,7 @@ export function multiWeaponAttack(ctx, plan) {
       hit = r.hit; crit = r.crit;
     }
     if (hit) {
-      const d = ctx.weapon.dice;
-      const rollWeapon = (isCrit) => isCrit
+      const rollWeapon = (isCrit, d = ctx.weapon.dice) => isCrit
         ? rollNotation(d, ctx.rng, m.orcReroll, talentTally(ctx)) + rollNotation(d, ctx.rng, m.orcReroll, talentTally(ctx))
         : rollNotation(d, ctx.rng, m.orcReroll, talentTally(ctx));
       let amount = rollWeapon(crit) + statBonus + extra + dmgFlat;
@@ -66,6 +80,10 @@ export function multiWeaponAttack(ctx, plan) {
       // Это куб — Талант к нему применим, а орочий переброс (только кубы урона) — нет.
       if (m.reaper && !reaperDone) { amount += rollDie(20, ctx.rng, false, talentTally(ctx)); reaperDone = true; }
       out[idx].push({ type, amount });
+      // Клинок усиливает только первую атаку: физика оружия остаётся, магия идёт сверху.
+      if (blade && firstStrike) {
+        out[idx].push({ type: 'magic', amount: rollWeapon(crit, `1d${blade}`) + ctx.attackBonus('cha') });
+      }
       if (ricochetSource < 0) { ricochetSource = idx; ricochetPacket = { type, amount }; }
       if (!firstHitDone && (m.smiteDice || 0) > 0) {
         out[idx].push({ type: 'radiant', amount: sumDice(crit ? 2 * m.smiteDice : m.smiteDice, 10, ctx.rng, m.orcReroll, talentTally(ctx)) });

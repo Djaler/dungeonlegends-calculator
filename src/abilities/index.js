@@ -9,6 +9,7 @@ import { RACIAL_ABILITIES } from './racial.js';
 import { ARTIFICER_ABILITIES } from './artificer.js';
 import { CLERIC_ABILITIES } from './cleric.js';
 import { NECRO_ABILITIES } from './necromancer.js';
+import { BARD_ABILITIES } from './bard.js';
 
 export const ABILITIES = [
   ...COMMON_ABILITIES,
@@ -22,4 +23,5 @@ export const ABILITIES = [
   ...ARTIFICER_ABILITIES,
   ...CLERIC_ABILITIES,
   ...NECRO_ABILITIES,
+  ...BARD_ABILITIES,
 ];

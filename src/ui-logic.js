@@ -75,6 +75,7 @@ export const GAME12_CHOICES = {
   druid:     [{ id: 'beastRage', name: 'Ярость зверя (кубы форм↑)' }, { id: 'windGust', name: 'Порыв ветра' }],
   artificer: [{ id: 'flamethrower', name: 'Весомый аргумент (огнемёт 2д6 + болт 1д6)' }, { id: 'unstableArgument', name: 'Нестабильный аргумент' }],
   cleric:    [{ id: 'divineLight', name: 'Божественный свет (1д4+Ст, излуч.)' }, { id: 'strongFaith', name: 'Укрепление веры' }],
+  bard:      [{ id: 'enchantedBlade', name: 'Очарованный клинок' }, { id: 'fanbase', name: 'Фанбаза' }],
   necromancer: [{ id: 'harvest', name: 'Жатва' }, { id: 'reaper', name: 'Губитель (+д20 к урону оружием)' }],
 };
 
@@ -136,7 +137,7 @@ export function modifierRelevance(ability, character) {
     adv: !!ability.usesAttackRoll,
     dis: !!ability.usesAttackRoll,
     hex: !!ability.usesSave,
-    chaos: magic,
+    chaos: magic || !!ability.alsoMagic,
     // Концентрация прибавляется «к следующему магическому урону» — на посох не льётся.
     concentration: c.classKey === 'wizard' && c.game >= 4 && magic,
     rage: ability.category === 'physical',
