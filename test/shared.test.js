@@ -266,3 +266,18 @@ test('Очарованный клинок действует только на �
   const p = multiWeaponAttack(blade([0.5, 0.5, 0.99, 0.99, 0.5, 0.99]), [0, 0]);
   assert.deepEqual(p, [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 14 }, { type: 'physical', amount: 7 }]]);
 });
+
+test('Губитель: одна реакция на ход и через два действия Решительности', () => {
+  // общий ctx.turn: первое действие получает д20, второе — нет
+  const c = ctx({ rng: seqRng([0.5, 0.99, 0.49, 0.5, 0.99]), mods: { reaper: true } });
+  c.turn = {};
+  assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 23 }]]);
+  assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 13 }]]);
+});
+
+test('Очарованный клинок: кубы клинка помечены в журнале Таланта как магия', () => {
+  const c = blade([0.5, 0.5, 0.99, 0.99]);
+  c.talent = { left: 3, tally: [] };
+  multiWeaponAttack(c, [0]);
+  assert.deepEqual(c.talent.tally.map((d) => d.type), [undefined, 'magic']);
+});

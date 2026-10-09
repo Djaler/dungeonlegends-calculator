@@ -155,3 +155,24 @@ test('Монте-Карло огненного шара близок к ожид
   // грубая вилка: среднее в диапазоне 17..27 (теоретическое ≈17.46: 70%*21 + 26%*10.5)
   assert.ok(m.groupMean > 17 && m.groupMean < 27, `mean=${m.groupMean}`);
 });
+
+test('Решительность: оба действия хода делят одно состояние хода', () => {
+  const seen = [];
+  const rec = { id: 'r', name: 'R', charges: '', simulateOnce: (ctx) => { seen.push(ctx.turn); return [[]]; } };
+  runAbility(rec, baseCtx(), { trials: 1, seed: 1, resolveAbility: rec });
+  assert.equal(seen.length, 2);
+  assert.ok(seen[0] && seen[0] === seen[1]);
+});
+
+test('Остаток Таланта ложится пакетом того типа, к чьему кубу применён', () => {
+  // физика 5 без кубов + магический куб д10=1; Талант +3 к магическому кубу, хаос ×2 → 5 + (1+3)×2 = 13
+  const mixed = {
+    id: 'm', name: 'M', charges: '',
+    simulateOnce: (ctx) => {
+      ctx.talent.tally.push({ sides: 10, roll: 1, type: 'magic' });
+      return [[{ type: 'physical', amount: 5 }, { type: 'magic', amount: 1 }]];
+    },
+  };
+  const m = runAbility(mixed, baseCtx({ targets: [{ ac: 12, hp: 99 }], mods: { talent: true, chaos: true } }), { trials: 1, seed: 1 });
+  assert.equal(m.groupMean, 13);
+});

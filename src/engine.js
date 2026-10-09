@@ -75,25 +75,41 @@ export function isHitWithTalent(ctx, nat, bonus, ac) {
   return base;
 }
 
-// Тратит заряды Таланта на кубы с наибольшим запасом до потолка грани —
-// по одному заряду на куб. Возвращает сумму прибавок.
-export function spendTalentOnDice(ctx, dice) {
+// Выбирает кубы с наибольшим запасом до потолка грани и тратит на них заряды —
+// по одному заряду на куб.
+function pickTalentDice(ctx, dice) {
   const t = ctx.talent;
-  if (!t || t.left <= 0) return 0;
-  const gains = dice
-    .map((d) => Math.min(d.roll + 3, d.sides) - d.roll)
-    .filter((g) => g > 0)
-    .sort((a, b) => b - a)
+  if (!t || t.left <= 0) return [];
+  const picked = dice
+    .map((d) => ({ d, gain: Math.min(d.roll + 3, d.sides) - d.roll }))
+    .filter((x) => x.gain > 0)
+    .sort((a, b) => b.gain - a.gain)
     .slice(0, t.left);
-  t.left -= gains.length;
-  return gains.reduce((s, g) => s + g, 0);
+  t.left -= picked.length;
+  return picked;
+}
+
+// Тратит заряды Таланта на переданные кубы. Возвращает сумму прибавок.
+export function spendTalentOnDice(ctx, dice) {
+  return pickTalentDice(ctx, dice).reduce((s, x) => s + x.gain, 0);
 }
 
 // Оставшиеся к концу хода заряды уходят в кубы урона, брошенные за ход.
-export function talentDamageBonus(ctx) {
+// Прибавка получает тип урона своего куба (type: null — тип не помечен,
+// берётся тип первого пакета цели): иначе зелья умножили бы её не той категорией.
+export function talentDamagePackets(ctx) {
   const t = ctx.talent;
-  if (!t || !t.tally.length) return 0;
-  return spendTalentOnDice(ctx, t.tally);
+  if (!t || !t.tally.length) return [];
+  const byType = new Map();
+  for (const { d, gain } of pickTalentDice(ctx, t.tally)) {
+    const type = d.type || null;
+    byType.set(type, (byType.get(type) || 0) + gain);
+  }
+  return [...byType].map(([type, amount]) => ({ type, amount }));
+}
+
+export function talentDamageBonus(ctx) {
+  return talentDamagePackets(ctx).reduce((s, p) => s + p.amount, 0);
 }
 
 // Общий урон области: кубы кидаются один раз на все цели. Талант на них тратится сразу —

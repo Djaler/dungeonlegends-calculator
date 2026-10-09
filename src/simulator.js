@@ -1,12 +1,13 @@
-import { makeRng, talentDamageBonus, TALENT_USES } from './engine.js';
+import { makeRng, talentDamagePackets, TALENT_USES } from './engine.js';
 import { applyPipeline } from './modifiers.js';
 
 // Неизрасходованные заряды Таланта добавляются к первой цели, получившей урон.
 function addTalentDamage(ctx, packets) {
-  const bonus = talentDamageBonus(ctx);
-  if (!bonus) return;
+  const extra = talentDamagePackets(ctx);
+  if (!extra.length) return;
   const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
-  if (idx >= 0) packets[idx].push({ type: packets[idx][0].type, amount: bonus });
+  if (idx < 0) return;
+  for (const p of extra) packets[idx].push({ type: p.type || packets[idx][0].type, amount: p.amount });
 }
 
 export function runAbility(ability, baseCtx, opts) {
@@ -24,7 +25,8 @@ export function runAbility(ability, baseCtx, opts) {
   let groupMin = Infinity, groupMax = -Infinity;
 
   for (let t = 0; t < trials; t++) {
-    const ctx = { ...baseCtx, rng };
+    // turn — состояние хода, общее для обоих действий Решительности (одноразовые реакции).
+    const ctx = { ...baseCtx, rng, turn: {} };
     ctx.attackBonus = (stat) => (ctx.stats ? ctx.stats[stat] : 0);
     // Талант: до трёх зарядов за ход — сначала спасают промахи, остаток идёт в урон.
     ctx.talent = baseCtx.mods && baseCtx.mods.talent ? { left: TALENT_USES, tally: [] } : null;

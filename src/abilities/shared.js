@@ -40,7 +40,8 @@ export function multiWeaponAttack(ctx, plan) {
   const type = m.typeOverride || 'physical';
   const acIgnore = m.acIgnore || 0;
   let firstHitDone = false;     // для смайта (один раз)
-  let reaperDone = false;       // Губитель — одна реакция, на первое попадание
+  // Губитель — одна реакция за ход: флаг живёт в состоянии хода, общем для обоих действий Решительности.
+  const turn = ctx.turn || {};
   // Клинок напевают перед атакой: проверка бросается до первого удара.
   let blade = 0;
   if (m.enchantedBlade) {
@@ -78,11 +79,15 @@ export function multiWeaponAttack(ctx, plan) {
       }
       // Губитель: реакцией прибавить к урону д20 здоровья (цена здоровьем вне модели).
       // Это куб — Талант к нему применим, а орочий переброс (только кубы урона) — нет.
-      if (m.reaper && !reaperDone) { amount += rollDie(20, ctx.rng, false, talentTally(ctx)); reaperDone = true; }
+      if (m.reaper && !turn.reaperDone) { amount += rollDie(20, ctx.rng, false, talentTally(ctx)); turn.reaperDone = true; }
       out[idx].push({ type, amount });
       // Клинок усиливает только первую атаку: физика оружия остаётся, магия идёт сверху.
       if (blade && firstStrike) {
+        const tally = talentTally(ctx);
+        const from = tally ? tally.length : 0;
         out[idx].push({ type: 'magic', amount: rollWeapon(crit, `1d${blade}`) + ctx.attackBonus('cha') });
+        // Кубы клинка — магические: остаток Таланта на них должен лечь магией, а не физикой.
+        if (tally) for (let k = from; k < tally.length; k++) tally[k].type = 'magic';
       }
       if (ricochetSource < 0) { ricochetSource = idx; ricochetPacket = { type, amount }; }
       if (!firstHitDone && (m.smiteDice || 0) > 0) {
