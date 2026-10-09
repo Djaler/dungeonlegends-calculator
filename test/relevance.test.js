@@ -42,7 +42,7 @@ const OFF_MODS = {
   acIgnore: 0, giantHunter: false, ricochet: false, typeOverride: undefined, contactless: false,
   runeOfWarrior: false, runeOfElements: false, runeType: 'fire', sacredWeapon: 0,
   tincture: false, inspiration: false, resolveAbilityId: null,
-  reaper: false,
+  reaper: false, mighty: false,
 };
 
 // Наборы целей: разный КБ ловит модификаторы попадания, расы — те, что меняют
@@ -51,6 +51,7 @@ const TARGET_SETS = [
   [{ ac: 10 }], [{ ac: 16 }], [{ ac: 22 }],
   [{ ac: 16 }, { ac: 16 }, { ac: 16 }],
   [{ ac: 16, race: 'dwarf' }], [{ ac: 16, race: 'orc' }], [{ ac: 16, race: 'aasimar' }],
+  [{ ac: 16, race: 'goliath' }],
 ];
 
 const mkTargets = (set) => set.map((t) => ({

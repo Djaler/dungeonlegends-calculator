@@ -1,3 +1,5 @@
+import { RACES } from './characters.js';
+
 // Детерминированный ГПСЧ (mulberry32). Возвращает функцию () -> [0,1).
 export function makeRng(seed) {
   let a = seed >>> 0;
@@ -127,4 +129,13 @@ export function rollNotation(notation, rng, orcReroll, tally) {
   const m = /^(\d+)d(\d+)$/.exec(String(notation).trim());
   if (!m) throw new Error(`Не распознана кость: ${notation}`);
   return sumDice(Number(m[1]), Number(m[2]), rng, orcReroll, tally);
+}
+
+// Режим спасброска цели: Сглаз накладывает помеху, расовая слабость цели
+// («Громоздкий» у голиафа) — помеху к проверкам своей характеристики.
+// Две помехи — всё равно одна помеха.
+export function saveModeFor(ctx, target, stat) {
+  const race = target && target.race ? RACES[target.race] : null;
+  const raceDis = !!(race && race.saveDis && race.saveDis[stat]);
+  return resolveMode(false, !!(ctx.mods && ctx.mods.hex) || raceDis);
 }

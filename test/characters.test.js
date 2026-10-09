@@ -69,3 +69,10 @@ test('RACES: правила цели по категориям', () => {
   assert.deepEqual(RACES.dwarf.onIncoming, { magic: { mult: 0.5 } });
   assert.equal(RACES.orc.orcReroll, true);
 });
+
+test('Голиаф: без правок статов, с Могучим и помехой к Ловкости', () => {
+  assert.equal(RACES.goliath.name, 'Голиаф');
+  assert.equal(RACES.goliath.mighty, true);
+  assert.deepEqual(RACES.goliath.saveDis, { dex: true });
+  assert.deepEqual(computePreset('goliath', 'warrior', 1), { ac: 15, hp: 25, saves: { str: 3, dex: 1, con: 1, wis: 0, int: 0, cha: -1 } });
+});

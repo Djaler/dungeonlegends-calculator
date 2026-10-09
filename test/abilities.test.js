@@ -182,3 +182,19 @@ test('fireball: Талант на общих кубах прибавляется
   assert.equal(c.talent.left, 0);
   assert.equal(c.talent.tally.length, 0);
 });
+
+const goliathTarget = (hex) => ctx({
+  rng: seqRng([0.99, 0, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]),
+  targets: [{ ac: 12, hp: 99, saves: { dex: 0 }, race: 'goliath' }],
+  mods: { hex },
+});
+
+test('fireball: голиаф-цель спасается с помехой', () => {
+  // помеха: 0.99 (20) и 0 (1) -> берётся 1, провал; 6д6 = 36
+  assert.deepEqual(get('fireball').simulateOnce(goliathTarget(false)), [[{ type: 'fire', amount: 36 }]]);
+});
+
+test('fireball: Сглаз и голиаф — одна помеха, а не две', () => {
+  // ровно два д20 на спас, иначе seqRng сдвинется и урон не совпадёт
+  assert.deepEqual(get('fireball').simulateOnce(goliathTarget(true)), [[{ type: 'fire', amount: 36 }]]);
+});

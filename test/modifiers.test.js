@@ -127,3 +127,18 @@ test('Руна стихий: конверсия типа + 1д6', () => {
   const out = applyPipeline([[{type:'physical',amount:5}]], baseCtx({ rng: seqRng([0.99]), mods:{ runeOfElements:true, runeType:'radiant' } }));
   assert.deepEqual(out, [11]);
 });
+
+test('Могучий: +1д4 физ первой цели с физическим уроном', () => {
+  const out = applyPipeline([[{ type: 'fire', amount: 10 }], [{ type: 'physical', amount: 5 }]], baseCtx({ mods: { mighty: true } }));
+  assert.deepEqual(out, [10, 9]); // д4 при 0.99 = 4
+});
+
+test('Могучий: без физического урона ничего не добавляет', () => {
+  const out = applyPipeline([[{ type: 'fire', amount: 10 }]], baseCtx({ mods: { mighty: true } }));
+  assert.deepEqual(out, [10]);
+});
+
+test('Могучий удваивается зельем ярости', () => {
+  const out = applyPipeline([[{ type: 'physical', amount: 5 }]], baseCtx({ mods: { mighty: true, rage: true } }));
+  assert.deepEqual(out, [18]); // (5 + 4) × 2
+});

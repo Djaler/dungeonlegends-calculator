@@ -22,7 +22,15 @@ function addInspiration(packets, ctx) {
   return packets;
 }
 
-// (1c) Руна стихий: конвертировать тип всех пакетов, добавить 1д6 первой цели с уроном.
+// (1c) Могучий (голиаф): +1д4 к физическому урону первой цели, которой он нанесён.
+function addMighty(packets, ctx) {
+  if (!ctx.mods.mighty) return packets;
+  const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0 && categoryOf(p.type) === 'physical'));
+  if (idx >= 0) packets[idx] = [...packets[idx], { type: 'physical', amount: sumDice(1, 4, ctx.rng, ctx.mods.orcReroll) }];
+  return packets;
+}
+
+// (1d) Руна стихий: конвертировать тип всех пакетов, добавить 1д6 первой цели с уроном.
 function applyRuneOfElements(packets, ctx) {
   if (!ctx.mods.runeOfElements) return packets;
   const t = ctx.mods.runeType || 'fire';
@@ -62,6 +70,7 @@ export function applyPipeline(packets, ctx) {
   let p = packets.map((arr) => arr.slice());
   p = addAttackerAdditive(p, ctx);
   p = addInspiration(p, ctx);
+  p = addMighty(p, ctx);
   p = applyRuneOfElements(p, ctx);
   p = applyMultipliers(p, ctx);
   return p.map((arr, i) => finalizeTarget(arr, ctx.targets[i]));

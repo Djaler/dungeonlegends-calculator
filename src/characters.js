@@ -31,6 +31,9 @@ export const RACES = {
   dragonborn: { name: 'Драконорождённый', hpMod: 0,  acMod: 1, statMods: {} },
   goblin:     { name: 'Гоблин',           hpMod: 0,  acMod: 0, statMods: {} },
   kitsune:    { name: 'Кицунэ',           hpMod: 0,  acMod: 0, statMods: {}, noCrit: true },
+  // mighty — «Могучий»: д4 к своему физическому урону (тумблер).
+  // saveDis — слабость «Громоздкий»: помеха к проверкам Ловкости, когда голиаф — цель спасброска.
+  goliath:    { name: 'Голиаф',           hpMod: 0,  acMod: 0, statMods: {}, mighty: true, saveDis: { dex: true } },
 };
 
 export const MILESTONES = [4, 8, 12, 16, 20];

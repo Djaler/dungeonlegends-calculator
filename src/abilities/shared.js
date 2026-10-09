@@ -1,4 +1,4 @@
-import { rollNotation, rollDie, d20, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared } from '../engine.js';
+import { rollNotation, rollDie, d20, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared, saveModeFor } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -15,7 +15,7 @@ function bladeDie(nat, total) {
 // один раз на всех — провалившие получают его целиком, спасшиеся половину.
 export function dexSaveBlast(ctx, out, nDice, type) {
   const saved = ctx.targets.map((t) => {
-    const nat = attackRoll(ctx.rng, ctx.mods.hex ? 'dis' : 'none'); // Сглаз = помеха спасброску
+    const nat = attackRoll(ctx.rng, saveModeFor(ctx, t, 'dex')); // Сглаз и «Громоздкий» — помеха
     return nat !== 1 && (nat === 20 || nat + ((t.saves && t.saves.dex) || 0) >= 15);
   });
   const full = rollShared(ctx, nDice, 6);
