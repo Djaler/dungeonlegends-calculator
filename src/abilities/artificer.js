@@ -9,7 +9,7 @@ function dmgDice(notation, ctx, crit) {
   return crit ? one() + one() : one();
 }
 
-const AMMO = { 'усиленный': '1d8', 'гарпун': '1d4' };
+const AMMO = { 'обычный': '1d8', 'гарпун': '1d4' };
 
 export const ARTIFICER_ABILITIES = [
   {
@@ -17,14 +17,14 @@ export const ARTIFICER_ABILITIES = [
     minGame: 1, choiceGroup: null, charges: 'действие', targeting: 'single',
     usesAttackRoll: true, usesSave: false, category: 'physical',
     params: [
-      { id: 'ammo', kind: 'select', label: 'Наконечник', default: 'усиленный',
-        options: [{ value: 'усиленный', label: 'Усиленный (1д8)' }, { value: 'гарпун', label: 'Гарпун (1д4)' }] },
+      { id: 'ammo', kind: 'select', label: 'Наконечник', default: 'обычный',
+        options: [{ value: 'обычный', label: 'Обычный (1д8)' }, { value: 'гарпун', label: 'Гарпун (1д4)' }] },
       { id: 'target', kind: 'targetPick', label: 'Цель', default: 0 },
     ],
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
       const i = ctx.params.target ?? 0;
-      const die = AMMO[ctx.params.ammo] || AMMO['усиленный'];
+      const die = AMMO[ctx.params.ammo] || AMMO['обычный'];
       const mode = resolveModeFor(ctx.mods.adv, ctx.mods.dis, ctx.targets[i]);
       const bonus = ctx.attackBonus('dex');
       const { hit, crit } = attackOnce(ctx, bonus, ctx.targets[i].ac, mode, true);

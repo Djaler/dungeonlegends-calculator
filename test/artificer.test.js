@@ -18,10 +18,21 @@ const actx = (over) => {
   };
 };
 
-test('Аргумент усиленный: 1d8+dex при попадании', () => {
+test('Аргумент обычный: 1d8+dex при попадании', () => {
   // nat 0.5 (=11, +2>=10 hit); 1d8 (0.99)=8 + dex 2 = 10
+  const p = get('argument').simulateOnce(actx({ rng: seqRng([0.5, 0.99]), params: { ammo: 'обычный', target: 0 } }));
+  assert.deepEqual(p, [[{ type: 'physical', amount: 10 }]]);
+});
+
+test('Аргумент: «усиленный» из старого сохранения считается обычным 1d8', () => {
   const p = get('argument').simulateOnce(actx({ rng: seqRng([0.5, 0.99]), params: { ammo: 'усиленный', target: 0 } }));
   assert.deepEqual(p, [[{ type: 'physical', amount: 10 }]]);
+});
+
+test('Аргумент: по умолчанию выбран обычный наконечник', () => {
+  const a = get('argument');
+  assert.equal(a.params[0].default, 'обычный');
+  assert.equal(a.params[0].options[0].value, 'обычный');
 });
 
 test('Аргумент гарпун: 1d4+dex', () => {
