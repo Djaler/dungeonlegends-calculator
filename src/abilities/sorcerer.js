@@ -50,4 +50,19 @@ export const SORCERER_ABILITIES = [
       return out;
     },
   },
+  {
+    id: 'wildAdept', name: 'Адепт дикой магии', classKey: 'sorcerer',
+    minGame: 12, choiceGroup: 'game12', charges: 'действие', targeting: 'area',
+    usesAttackRoll: false, usesSave: true, category: 'magic', params: [],
+    simulateOnce(ctx) {
+      // д6 дикой магии вокруг выбранной цели; урон дают только две грани:
+      // 1 — 10 излучением всем в области; 2 — огненный шар (6д6, спас «ловкость — 15»).
+      // 3–6 — заморозка, лечение, бафф и телепорт — вне модели урона.
+      const out = empty(ctx.targets.length);
+      const face = rollDie(6, ctx.rng, false);
+      if (face === 1) for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'radiant', amount: 10 });
+      if (face === 2) dexSaveBlast(ctx, out, 6, 'fire');
+      return out;
+    },
+  },
 ];

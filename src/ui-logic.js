@@ -76,6 +76,7 @@ export const GAME12_CHOICES = {
   artificer: [{ id: 'flamethrower', name: 'Весомый аргумент (огнемёт 2д6 + болт 1д6)' }, { id: 'unstableArgument', name: 'Нестабильный аргумент' }],
   cleric:    [{ id: 'divineLight', name: 'Божественный свет (1д4+Ст, излуч.)' }, { id: 'strongFaith', name: 'Укрепление веры' }],
   bard:      [{ id: 'enchantedBlade', name: 'Очарованный клинок' }, { id: 'fanbase', name: 'Фанбаза' }],
+  sorcerer:  [{ id: 'wildAdept', name: 'Адепт дикой магии' }, { id: 'saturation', name: 'Насыщение магией' }],
   necromancer: [{ id: 'harvest', name: 'Жатва' }, { id: 'reaper', name: 'Губитель (+д20 к урону оружием)' }],
 };
 

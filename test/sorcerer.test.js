@@ -74,3 +74,26 @@ test('Чародею 1-й игры доступны кинжалы, пламя, 
   const ids = availableAbilities({ classKey: 'sorcerer', raceKey: 'elf', game: 1 }).map((a) => a.id);
   assert.deepEqual(ids.sort(), ['basicAttack', 'flame', 'flash', 'magicDaggers']);
 });
+
+test('Адепт дикой магии: грань 1 -> 10 излучением всем', () => {
+  const t = { ac: 10, hp: 99, saves: { dex: 0 } };
+  const p = get('wildAdept').simulateOnce(sctx({ rng: seqRng([0]), targets: [t, t] }));
+  assert.deepEqual(p, [[{ type: 'radiant', amount: 10 }], [{ type: 'radiant', amount: 10 }]]);
+});
+
+test('Адепт дикой магии: грань 2 -> огненный шар 6д6 со спасом', () => {
+  // грань 0.2 -> 2; спас 0 -> провал; 6×6 = 36
+  const p = get('wildAdept').simulateOnce(sctx({ rng: seqRng([0.2, 0, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]) }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 36 }]]);
+});
+
+test('Адепт дикой магии: грани 3–6 урона не дают', () => {
+  const p = get('wildAdept').simulateOnce(sctx({ rng: seqRng([0.5]) }));
+  assert.deepEqual(p, [[]]);
+});
+
+test('Адепт доступен только при выборе на 12-й игре', () => {
+  const ids = (game12Choice) => availableAbilities({ classKey: 'sorcerer', raceKey: 'elf', game: 12, game12Choice }).map((a) => a.id);
+  assert.ok(ids('wildAdept').includes('wildAdept'));
+  assert.ok(!ids('saturation').includes('wildAdept'));
+});

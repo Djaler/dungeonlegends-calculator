@@ -282,3 +282,7 @@ test('старый выбор soulMaster не ломает список спос
   assert.ok(ids.includes('pathToOblivion'));
   assert.ok(!ids.includes('harvest'));
 });
+
+test('GAME12_CHOICES: у чародея Адепт и Насыщение магией', () => {
+  assert.deepEqual(GAME12_CHOICES.sorcerer.map((x) => x.id), ['wildAdept', 'saturation']);
+});
