@@ -50,12 +50,17 @@ export function attackOnce(ctx, bonus, ac, mode, first) {
   return r;
 }
 
+// Талант: «пассивно, 3 раза в день» — за ход можно потратить все три,
+// но к одному кубу (в том числе к одному д20) — не больше одного раза.
+export const TALENT_USES = 3;
+
 // Журнал кубов урона для Таланта; без включённого таланта — undefined, броски не пишутся.
 export const talentTally = (ctx) => (ctx.talent ? ctx.talent.tally : undefined);
 
 // Талант: «+3 к любому броску своего куба, но не больше максимума куба».
 // На попадание тратится только когда решает исход — промах без него, попадание с ним.
 // Крит он не создаёт: критом остаётся натуральная двадцатка.
+// Каждый вызов — отдельный д20, поэтому одна атака спасается не больше одного раза.
 export function isHitWithTalent(ctx, nat, bonus, ac) {
   const t = ctx.talent;
   const base = isHit(nat, bonus, ac, ctx.critRange, ctx.fumbleRange);
@@ -68,15 +73,25 @@ export function isHitWithTalent(ctx, nat, bonus, ac) {
   return base;
 }
 
-// Остался свободным к концу хода — уходит в самый низкий из брошенных кубов урона:
-// там у него больше всего запаса до потолка грани.
+// Тратит заряды Таланта на кубы с наибольшим запасом до потолка грани —
+// по одному заряду на куб. Возвращает сумму прибавок.
+export function spendTalentOnDice(ctx, dice) {
+  const t = ctx.talent;
+  if (!t || t.left <= 0) return 0;
+  const gains = dice
+    .map((d) => Math.min(d.roll + 3, d.sides) - d.roll)
+    .filter((g) => g > 0)
+    .sort((a, b) => b - a)
+    .slice(0, t.left);
+  t.left -= gains.length;
+  return gains.reduce((s, g) => s + g, 0);
+}
+
+// Оставшиеся к концу хода заряды уходят в кубы урона, брошенные за ход.
 export function talentDamageBonus(ctx) {
   const t = ctx.talent;
-  if (!t || t.left <= 0 || !t.tally.length) return 0;
-  let best = 0;
-  for (const d of t.tally) best = Math.max(best, Math.min(d.roll + 3, d.sides) - d.roll);
-  if (best > 0) t.left -= 1;
-  return best;
+  if (!t || !t.tally.length) return 0;
+  return spendTalentOnDice(ctx, t.tally);
 }
 
 // Режим броска по конкретной цели: к общим флагам хода добавляются состояния цели

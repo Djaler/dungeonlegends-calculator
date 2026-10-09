@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeRng, rollDie, sumDice, d20, resolveMode, attackRoll, isHit, CRIT_DOUBLES_DICE, rollNotation,
-  isHitWithTalent, talentDamageBonus } from '../src/engine.js';
+  isHitWithTalent, talentDamageBonus, TALENT_USES, spendTalentOnDice } from '../src/engine.js';
 import { seqRng } from './helpers.js';
 
 test('makeRng детерминирован по зерну', () => {
@@ -122,6 +122,39 @@ test('Талант: потраченный на попадание в урон �
 test('Талант: без единого броска давать нечего', () => {
   const ctx = { talent: { left: 1, tally: [] } };
   assert.equal(talentDamageBonus(ctx), 0);
+});
+
+test('Талант: три заряда уходят в три самых выгодных разных куба', () => {
+  const ctx = { talent: { left: 3, tally: [
+    { sides: 6, roll: 1 }, { sides: 6, roll: 2 }, { sides: 6, roll: 5 }, { sides: 6, roll: 6 },
+  ] } };
+  assert.equal(talentDamageBonus(ctx), 7); // 3 + 3 + 1, шестёрке прибавлять некуда
+  assert.equal(ctx.talent.left, 0);
+});
+
+test('Талант: к одному кубу не применяется дважды', () => {
+  const ctx = { talent: { left: 3, tally: [{ sides: 6, roll: 1 }] } };
+  assert.equal(talentDamageBonus(ctx), 3);
+  assert.equal(ctx.talent.left, 2);
+});
+
+test('Талант: спасает несколько атак за ход, пока есть заряды', () => {
+  const ctx = { critRange: 20, fumbleRange: 1, talent: { left: 2, tally: [] } };
+  assert.equal(isHitWithTalent(ctx, 11, 4, 17).hit, true);
+  assert.equal(isHitWithTalent(ctx, 11, 4, 17).hit, true);
+  assert.equal(isHitWithTalent(ctx, 11, 4, 17).hit, false); // зарядов нет
+  assert.equal(ctx.talent.left, 0);
+});
+
+test('spendTalentOnDice: тратит заряды на переданные кубы, без таланта — 0', () => {
+  const ctx = { talent: { left: 3, tally: [] } };
+  assert.equal(spendTalentOnDice(ctx, [{ sides: 6, roll: 2 }, { sides: 6, roll: 4 }]), 5); // 3 + 2
+  assert.equal(ctx.talent.left, 1);
+  assert.equal(spendTalentOnDice({ talent: null }, [{ sides: 6, roll: 1 }]), 0);
+});
+
+test('Талант: три заряда за ход', () => {
+  assert.equal(TALENT_USES, 3);
 });
 
 test('isHit: fumbleRange 2 делает двойку промахом («Злой рок» человека)', () => {

@@ -84,8 +84,8 @@ test('Талант в прогоне: поднимает низший куб у�
   const off = runAbility(fb, ctxFor(false), { trials: 20000, seed: 5 });
   const on = runAbility(fb, ctxFor(true), { trials: 20000, seed: 5 });
   const gain = on.groupMean - off.groupMean;
-  // Талант каждый ход поднимает самый низкий из 6д6: почти всегда полные +3
-  assert.ok(gain > 2.5 && gain < 3.05, `прирост ${gain.toFixed(2)} вне ожидаемого 2.5..3.05`);
+  // До трёх зарядов на три самых низких из 6д6: в среднем ≈ +8.4
+  assert.ok(gain > 7.9 && gain < 8.9, `прирост ${gain.toFixed(2)} вне ожидаемого 7.9..8.9`);
 });
 
 test('runAbility отдаёт распределение по каждой цели', () => {
