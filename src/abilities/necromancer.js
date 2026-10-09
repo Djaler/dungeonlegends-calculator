@@ -26,13 +26,12 @@ export const NECRO_ABILITIES = [
     category: 'magic',
     params: [],
     simulateOnce(ctx) {
-      // Каждая цель получает 1d8 + Интеллект некротического урона.
+      // Каждая цель получает 1d8 некротического урона.
       const out = empty(ctx.targets.length);
-      const int = ctx.attackBonus('int');
       for (let i = 0; i < ctx.targets.length; i++) {
         out[i].push({
           type: 'necrotic',
-          amount: rollNotation('1d8', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) + int,
+          amount: rollNotation('1d8', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)),
         });
       }
       return out;

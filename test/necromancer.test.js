@@ -18,9 +18,9 @@ const nctx = (over) => {
   };
 };
 
-test('Путь в небытие: 1d8+Интеллект некротик по всем', () => {
+test('Путь в небытие: 1d8 некротик по всем, без Интеллекта', () => {
   const p = get('pathToOblivion').simulateOnce(nctx({ rng: seqRng([0.99]) }));
-  assert.deepEqual(p, [[{ type: 'necrotic', amount: 11 }]]); // d8 0.99->8 +3(int)
+  assert.deepEqual(p, [[{ type: 'necrotic', amount: 8 }]]); // d8 0.99->8, интеллект не прибавляется
 });
 
 test('Погребальный звон: d20=20 -> 5d6', () => {
