@@ -70,3 +70,11 @@ test('Жатва: Сглаз даёт помеху спасброску толь
   c.mods.hex = true; c.mods.hexTarget = 1;
   assert.deepEqual(get('harvest').simulateOnce(c), [[], [{ type: 'necrotic', amount: 10 }]]);
 });
+
+test('Погребальный звон: Талант дотягивает д20 до следующей ступени', () => {
+  // d20 = 3 (1д6) -> с Талантом 6 (2д6) = 12
+  const c = nctx({ rng: seqRng([0.1, 0.99, 0.99]) });
+  c.talent = { left: 1, tally: [] };
+  assert.deepEqual(get('funeralBell').simulateOnce(c), [[{ type: 'necrotic', amount: 12 }]]);
+  assert.equal(c.talent.left, 0);
+});

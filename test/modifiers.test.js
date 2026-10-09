@@ -153,3 +153,18 @@ test('Руна стихий: д6 идёт первой цели, которой 
   const out = applyPipeline([[], [{ type: 'physical', amount: 5 }]], baseCtx({ rng: seqRng([0.99]), targets: [{}, {}], mods: { runeOfElements: true, runeType: 'fire' } }));
   assert.deepEqual(out, [0, 11]);
 });
+
+test('Талант: остаток ложится и на д6 Воодушевления', () => {
+  // физика 5, воодушевление д6 = 1, Талант +3 к нему магией → 5 + 1 + 3
+  const c = baseCtx({ rng: seqRng([0]), mods: { inspiration: true } });
+  c.talent = { left: 1, tally: [] };
+  assert.deepEqual(applyPipeline([[{ type: 'physical', amount: 5 }]], c), [9]);
+  assert.equal(c.talent.left, 0);
+});
+
+test('Талант: с Руной стихий прибавка получает тип руны', () => {
+  // куб оружия 1 (+3), д6 руны = 6 (некуда); всё огонь, хаос ×2 → (5 + 6 + 3) × 2
+  const c = baseCtx({ rng: seqRng([0.99]), mods: { runeOfElements: true, runeType: 'fire', chaos: true } });
+  c.talent = { left: 3, tally: [{ sides: 6, roll: 1 }] };
+  assert.deepEqual(applyPipeline([[{ type: 'physical', amount: 5 }]], c), [28]);
+});

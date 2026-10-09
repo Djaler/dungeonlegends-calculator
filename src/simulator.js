@@ -1,14 +1,5 @@
-import { makeRng, talentDamagePackets, TALENT_USES } from './engine.js';
+import { makeRng, TALENT_USES } from './engine.js';
 import { applyPipeline } from './modifiers.js';
-
-// Неизрасходованные заряды Таланта добавляются к первой цели, получившей урон.
-function addTalentDamage(ctx, packets) {
-  const extra = talentDamagePackets(ctx);
-  if (!extra.length) return;
-  const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
-  if (idx < 0) return;
-  for (const p of extra) packets[idx].push({ type: p.type || packets[idx][0].type, amount: p.amount });
-}
 
 export function runAbility(ability, baseCtx, opts) {
   const trials = opts.trials;
@@ -30,14 +21,18 @@ export function runAbility(ability, baseCtx, opts) {
     ctx.attackBonus = (stat) => (ctx.stats ? ctx.stats[stat] : 0);
     // Талант: до трёх зарядов за ход — сначала спасают промахи, остаток идёт в урон.
     ctx.talent = baseCtx.mods && baseCtx.mods.talent ? { left: TALENT_USES, tally: [] } : null;
+    // Остаток Таланта раздаёт пайплайн: к тому времени брошены все кубы хода,
+    // включая кубы второго действия и прибавок.
     const packets = ability.simulateOnce(ctx);
-    addTalentDamage(ctx, packets);
     if (resolveAbility) {
       // Решительность (человек): второе действие за ход — своей способностью
       // и со своими параметрами; его урон делится пополам.
       // Пакеты вливаются до пайплайна, чтобы разовые за ход прибавки (концентрация,
       // воодушевление) начислились один раз, а не по разу на действие.
+      const from = ctx.talent ? ctx.talent.tally.length : 0;
       const second = resolveAbility.simulateOnce({ ...ctx, params: resolveParams });
+      // Кубы второго действия — с половинным уроном, поэтому и прибавка Таланта к ним вдвое меньше.
+      if (ctx.talent) for (let k = from; k < ctx.talent.tally.length; k++) ctx.talent.tally[k].half = true;
       second.forEach((arr, i) => {
         for (const p of arr) packets[i].push({ ...p, amount: Math.floor(p.amount / 2) });
       });

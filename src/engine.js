@@ -75,15 +75,19 @@ export function isHitWithTalent(ctx, nat, bonus, ac) {
   return base;
 }
 
-// Выбирает кубы с наибольшим запасом до потолка грани и тратит на них заряды —
-// по одному заряду на куб.
+// Выбирает кубы с наибольшей ценностью прибавки и тратит на них заряды — по одному
+// заряду на куб. Ценность — запас до потолка грани; у кубов второго действия
+// Решительности (half) — половина запаса, как и их урон.
 function pickTalentDice(ctx, dice) {
   const t = ctx.talent;
   if (!t || t.left <= 0) return [];
   const picked = dice
-    .map((d) => ({ d, gain: Math.min(d.roll + 3, d.sides) - d.roll }))
+    .map((d) => {
+      const gain = Math.min(d.roll + 3, d.sides) - d.roll;
+      return { d, gain, worth: d.half ? gain / 2 : gain };
+    })
     .filter((x) => x.gain > 0)
-    .sort((a, b) => b.gain - a.gain)
+    .sort((a, b) => b.worth - a.worth)
     .slice(0, t.left);
   t.left -= picked.length;
   return picked;
@@ -97,19 +101,43 @@ export function spendTalentOnDice(ctx, dice) {
 // Оставшиеся к концу хода заряды уходят в кубы урона, брошенные за ход.
 // Прибавка получает тип урона своего куба (type: null — тип не помечен,
 // берётся тип первого пакета цели): иначе зелья умножили бы её не той категорией.
+// Кубы второго действия Решительности помечены half: их прибавка делится пополам, как и урон.
 export function talentDamagePackets(ctx) {
   const t = ctx.talent;
   if (!t || !t.tally.length) return [];
   const byType = new Map();
-  for (const { d, gain } of pickTalentDice(ctx, t.tally)) {
+  for (const { d, worth } of pickTalentDice(ctx, t.tally)) {
     const type = d.type || null;
-    byType.set(type, (byType.get(type) || 0) + gain);
+    byType.set(type, (byType.get(type) || 0) + worth);
   }
-  return [...byType].map(([type, amount]) => ({ type, amount }));
+  return [...byType].map(([type, amount]) => ({ type, amount: Math.floor(amount) }));
 }
 
 export function talentDamageBonus(ctx) {
   return talentDamagePackets(ctx).reduce((s, p) => s + p.amount, 0);
+}
+
+// Кубы прибавок (Воодушевление, Концентрация, Могучий, Руна): пишутся в журнал Таланта
+// с типом урона, чтобы остаток Таланта лёг на них нужной категорией.
+export function rollTyped(ctx, n, sides, type) {
+  const tally = talentTally(ctx);
+  let total = 0;
+  for (let i = 0; i < n; i++) {
+    const roll = rollDie(sides, ctx.rng, ctx.mods.orcReroll);
+    if (tally) tally.push({ sides, roll, type });
+    total += roll;
+  }
+  return total;
+}
+
+// Талант на д20, который выбирает ступень урона: тратится, только если +3
+// переводит бросок через порог ступени.
+export function bumpTier(ctx, value, thresholds) {
+  const t = ctx.talent;
+  if (!t || t.left <= 0) return value;
+  if (!thresholds.some((th) => value < th && value + 3 >= th)) return value;
+  t.left -= 1;
+  return value + 3;
 }
 
 // Общий урон области: кубы кидаются один раз на все цели. Талант на них тратится сразу —

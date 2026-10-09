@@ -289,3 +289,17 @@ test('Очарованный клинок: одна реакция на ход �
   assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 14 }]]);
   assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 7 }]]);
 });
+
+test('Очарованный клинок: свободный заряд Таланта поднимает проверку на ступень', () => {
+  // проверка nat 8 +4 = 12 -> с Талантом 15 -> д10 = 10 +4 = 14 (без него д8 -> 12)
+  const c = blade([0.35, 0.5, 0.99, 0.99]);
+  c.talent = { left: 3, tally: [] };
+  assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 14 }]]);
+  assert.equal(c.talent.left, 2);
+});
+
+test('Очарованный клинок: без свободного заряда проверка не поднимается', () => {
+  const c = blade([0.35, 0.5, 0.99, 0.99]);
+  c.talent = { left: 2, tally: [] };
+  assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 12 }]]);
+});

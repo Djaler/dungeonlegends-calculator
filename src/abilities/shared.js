@@ -1,4 +1,4 @@
-import { rollNotation, rollDie, d20, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared, saveModeFor } from '../engine.js';
+import { rollNotation, rollDie, d20, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared, saveModeFor, bumpTier, TALENT_USES } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -48,7 +48,11 @@ export function multiWeaponAttack(ctx, plan) {
   if (m.enchantedBlade && !turn.bladeDone) {
     turn.bladeDone = true;
     const nat = d20(ctx.rng);
-    blade = bladeDie(nat, nat + ctx.attackBonus('cha'));
+    let total = nat + ctx.attackBonus('cha');
+    // Талант к проверке: ступень куба клинка даёт меньше, чем +3 к кубу урона,
+    // поэтому тратится только свободный заряд — пока ни один не потрачен за ход.
+    if (nat !== 1 && ctx.talent && ctx.talent.left === TALENT_USES) total = bumpTier(ctx, total, [10, 15, 20]);
+    blade = bladeDie(nat, total);
   }
   let firstStrike = true;       // первый удар плана — для guaranteedHit/скрытной
   let ricochetSource = -1;      // индекс цели первого попадания (для рикошета)

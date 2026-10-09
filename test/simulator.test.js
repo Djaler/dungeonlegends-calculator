@@ -176,3 +176,17 @@ test('Остаток Таланта ложится пакетом того ти�
   const m = runAbility(mixed, baseCtx({ targets: [{ ac: 12, hp: 99 }], mods: { talent: true, chaos: true } }), { trials: 1, seed: 1 });
   assert.equal(m.groupMean, 13);
 });
+
+test('Решительность: остаток Таланта достаётся кубам второго действия, прибавка пополам', () => {
+  const miss = { id: 'miss', name: 'Miss', charges: '', simulateOnce: () => [[]] };
+  const second = {
+    id: 's', name: 'S', charges: '',
+    simulateOnce: (ctx) => {
+      ctx.talent.tally.push({ sides: 10, roll: 1 }, { sides: 10, roll: 1 });
+      return [[{ type: 'physical', amount: 10 }]];
+    },
+  };
+  // второе действие: ⌊10/2⌋ = 5; Талант +3 +3 к его кубам, пополам = 3 → 8
+  const m = runAbility(miss, baseCtx({ targets: [{ ac: 12, hp: 99 }], mods: { talent: true } }), { trials: 1, seed: 1, resolveAbility: second });
+  assert.equal(m.groupMean, 8);
+});

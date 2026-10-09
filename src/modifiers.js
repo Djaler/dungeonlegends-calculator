@@ -1,5 +1,5 @@
 import { categoryOf } from './types.js';
-import { sumDice } from './engine.js';
+import { rollTyped, talentDamagePackets } from './engine.js';
 import { RACES } from './characters.js';
 
 // (1) Аддитив атакующего: концентрация добавляет 2д6 магии (за стак)
@@ -8,7 +8,7 @@ function addAttackerAdditive(packets, ctx) {
   const stacks = Number(ctx.mods.concentration) || 0;
   if (stacks <= 0) return packets;
   let bonus = 0;
-  for (let s = 0; s < stacks; s++) bonus += sumDice(2, 6, ctx.rng, ctx.mods.orcReroll);
+  for (let s = 0; s < stacks; s++) bonus += rollTyped(ctx, 2, 6, 'magic');
   const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
   if (idx >= 0) packets[idx] = [...packets[idx], { type: 'magic', amount: bonus }];
   return packets;
@@ -18,7 +18,7 @@ function addAttackerAdditive(packets, ctx) {
 function addInspiration(packets, ctx) {
   if (!ctx.mods.inspiration) return packets;
   const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
-  if (idx >= 0) packets[idx] = [...packets[idx], { type: 'magic', amount: sumDice(1, 6, ctx.rng, ctx.mods.orcReroll) }];
+  if (idx >= 0) packets[idx] = [...packets[idx], { type: 'magic', amount: rollTyped(ctx, 1, 6, 'magic') }];
   return packets;
 }
 
@@ -26,7 +26,7 @@ function addInspiration(packets, ctx) {
 function addMighty(packets, ctx) {
   if (!ctx.mods.mighty) return packets;
   const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0 && categoryOf(p.type) === 'physical'));
-  if (idx >= 0) packets[idx] = [...packets[idx], { type: 'physical', amount: sumDice(1, 4, ctx.rng, ctx.mods.orcReroll) }];
+  if (idx >= 0) packets[idx] = [...packets[idx], { type: 'physical', amount: rollTyped(ctx, 1, 4, 'physical') }];
   return packets;
 }
 
@@ -37,8 +37,21 @@ function applyRuneOfElements(packets, ctx) {
   let p = packets.map((arr) => arr.map((pk) => ({ ...pk, type: t })));
   // «К нанесённому урону»: при промахе прибавлять не к чему.
   const idx = p.findIndex((arr) => arr.some((pk) => pk.amount > 0));
-  if (idx >= 0) p[idx] = [...p[idx], { type: t, amount: sumDice(1, 6, ctx.rng, ctx.mods.orcReroll) }];
+  if (idx >= 0) p[idx] = [...p[idx], { type: t, amount: rollTyped(ctx, 1, 6, t) }];
   return p;
+}
+
+// (1e) Остаток Таланта — в самые выгодные кубы хода, прибавкой типа своего куба.
+// С Руной стихий весь урон уже её типа — прибавка тоже.
+function addTalentResidual(packets, ctx) {
+  const extra = talentDamagePackets(ctx);
+  if (!extra.length) return packets;
+  const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
+  if (idx < 0) return packets;
+  const rune = ctx.mods.runeOfElements ? (ctx.mods.runeType || 'fire') : null;
+  const first = packets[idx][0].type;
+  packets[idx] = [...packets[idx], ...extra.map((p) => ({ type: rune || p.type || first, amount: p.amount }))];
+  return packets;
 }
 
 // (2) Множители атакующего по категории урона + настойка (×2 всего).
@@ -72,6 +85,7 @@ export function applyPipeline(packets, ctx) {
   p = addInspiration(p, ctx);
   p = addMighty(p, ctx);
   p = applyRuneOfElements(p, ctx);
+  p = addTalentResidual(p, ctx);
   p = applyMultipliers(p, ctx);
   return p.map((arr, i) => finalizeTarget(arr, ctx.targets[i]));
 }

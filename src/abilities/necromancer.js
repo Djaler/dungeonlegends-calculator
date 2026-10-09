@@ -1,4 +1,4 @@
-import { attackRoll, rollNotation, d20, sumDice, talentTally, rollShared, saveModeFor } from '../engine.js';
+import { attackRoll, rollNotation, d20, sumDice, talentTally, rollShared, saveModeFor, bumpTier } from '../engine.js';
 
 function empty(n) {
   return Array.from({ length: n }, () => []);
@@ -49,7 +49,8 @@ export const NECRO_ABILITIES = [
       // Катаем d20: 1–4 → 1d6; 5–9 → 2d6; 10–14 → 3d6; 15–19 → 4d6; 20 → 5d6 некротического урона.
       const out = empty(ctx.targets.length);
       const i = ctx.params.target ?? 0;
-      const nat = d20(ctx.rng);
+      // Талант дотягивает д20 до следующей ступени, если +3 переводит через порог.
+      const nat = bumpTier(ctx, d20(ctx.rng), [5, 10, 15, 20]);
       out[i].push({
         type: 'necrotic',
         amount: rollNotation(bellDice(nat), ctx.rng, ctx.mods.orcReroll, talentTally(ctx)),
