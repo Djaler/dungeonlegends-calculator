@@ -57,7 +57,7 @@ test('уникальный противник без расы — правила
   assert.deepEqual(out, [10]);
 });
 
-test('концентрация добавляет 2д6 магии первой цели с уроном', () => {
+test('концентрация добавляет 2д6 магии цели с уроном, промах без прибавки', () => {
   // 1 стак: 2д6 по rng 0.99 = 12, прибавляется к первой ненулевой цели
   const out = applyPipeline(
     [[], [{ type: 'physical', amount: 5 }]],
@@ -149,9 +149,35 @@ test('Руна стихий: при промахе прибавлять не к 
   assert.deepEqual(out, [0, 0]);
 });
 
-test('Руна стихий: д6 идёт первой цели, которой нанесён урон', () => {
+test('Руна стихий: д6 получает только цель, которой нанесён урон', () => {
   const out = applyPipeline([[], [{ type: 'physical', amount: 5 }]], baseCtx({ rng: seqRng([0.99]), targets: [{}, {}], mods: { runeOfElements: true, runeType: 'fire' } }));
   assert.deepEqual(out, [0, 11]);
+});
+
+test('Руна стихий: один д6 на всех целей, которым нанесён урон', () => {
+  // д6 кидается один раз (в seqRng одно значение) и достаётся обеим раненым целям; промах — без прибавки
+  const out = applyPipeline(
+    [[{ type: 'fire', amount: 5 }], [], [{ type: 'fire', amount: 3 }]],
+    baseCtx({ rng: seqRng([0.99]), targets: [{}, {}, {}], mods: { runeOfElements: true, runeType: 'fire' } }),
+  );
+  assert.deepEqual(out, [11, 0, 9]);
+});
+
+test('концентрация: один бросок 2д6 на всех целей с уроном', () => {
+  // 2д6 = 6 + 1 по общему броску → +7 каждой раненой цели
+  const out = applyPipeline(
+    [[{ type: 'fire', amount: 5 }], [{ type: 'fire', amount: 3 }]],
+    baseCtx({ rng: seqRng([0.99, 0]), targets: [{}, {}], mods: { concentration: 1 } }),
+  );
+  assert.deepEqual(out, [12, 10]);
+});
+
+test('Талант на общем кубе концентрации достаётся каждой цели', () => {
+  // 2д6 = 6 + 1, Талант +3 к единице → +10 каждой из двух целей; заряд потрачен
+  const c = baseCtx({ rng: seqRng([0.99, 0]), targets: [{}, {}], mods: { concentration: 1 } });
+  c.talent = { left: 1, tally: [] };
+  assert.deepEqual(applyPipeline([[{ type: 'fire', amount: 5 }], [{ type: 'fire', amount: 3 }]], c), [15, 13]);
+  assert.equal(c.talent.left, 0);
 });
 
 test('Талант: остаток ложится и на д6 Воодушевления', () => {

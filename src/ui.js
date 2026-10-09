@@ -396,7 +396,7 @@ function initUI(root) {
       }).join('') + '</div>'
       + ((c.artifacts || []).includes('runeOfElements') ? `
         <div class="int-row" style="margin-top:10px">
-          <div class="cap"><b>Руна стихий: тип урона</b><span>+1d6 и смена типа; физический и магический по-разному ложатся на слабости цели</span></div>
+          <div class="cap"><b>Руна стихий: тип урона</b><span>+1d6 каждой цели с уроном (один бросок на всех) и смена типа; физический и магический по-разному ложатся на слабости цели</span></div>
           <select data-runetype style="width:auto">
             <option value="physical" ${(state.mods.runeType||'fire')==='physical'?'selected':''}>Физический</option>
             <option value="magic" ${(state.mods.runeType||'fire')==='magic'?'selected':''}>Магический</option>
@@ -436,7 +436,7 @@ function initUI(root) {
           </div>
         </div>` : '')
       + (rel.concentration ? `<div class="int-row" style="margin-top:10px">
-          <div class="cap"><b>Концентрация ×${state.mods.concentration}</b><span>+2d6 к урону за каждый заряд</span></div>
+          <div class="cap"><b>Концентрация ×${state.mods.concentration}</b><span>+2d6 за каждый заряд каждой цели с уроном (один бросок на всех)</span></div>
           <div class="stepper">
             <button data-conc="-1" aria-label="меньше">−</button>
             <input type="number" value="${state.mods.concentration}" readonly aria-label="Концентрация">

@@ -1,16 +1,25 @@
 import { categoryOf } from './types.js';
-import { rollTyped, talentDamagePackets } from './engine.js';
+import { rollTyped, rollShared, talentDamagePackets } from './engine.js';
 import { RACES } from './characters.js';
 
-// (1) Аддитив атакующего: концентрация добавляет 2д6 магии (за стак)
-// первой цели, у которой уже есть урон.
+// Цели, которым нанесён урон.
+const hitIndexes = (packets) => packets.flatMap((arr, i) => (arr.some((p) => p.amount > 0) ? [i] : []));
+
+// Прибавка «к нанесённому урону» (Концентрация, Руна стихий) достаётся каждой цели
+// с уроном одним броском на всех, как урон по области. На общий куб Талант тратится
+// сразу — его прибавку получает каждая цель; у одной цели куб идёт в журнал, как раньше.
+function rollHitBonus(ctx, hits, n, sides, type) {
+  return hits.length > 1 ? rollShared(ctx, n, sides) : rollTyped(ctx, n, sides, type);
+}
+
+// (1) Аддитив атакующего: концентрация добавляет 2д6 магии (за стак) каждой цели с уроном.
 function addAttackerAdditive(packets, ctx) {
   const stacks = Number(ctx.mods.concentration) || 0;
   if (stacks <= 0) return packets;
-  let bonus = 0;
-  for (let s = 0; s < stacks; s++) bonus += rollTyped(ctx, 2, 6, 'magic');
-  const idx = packets.findIndex((arr) => arr.some((p) => p.amount > 0));
-  if (idx >= 0) packets[idx] = [...packets[idx], { type: 'magic', amount: bonus }];
+  const hits = hitIndexes(packets);
+  if (!hits.length) return packets;
+  const bonus = rollHitBonus(ctx, hits, 2 * stacks, 6, 'magic');
+  for (const i of hits) packets[i] = [...packets[i], { type: 'magic', amount: bonus }];
   return packets;
 }
 
@@ -30,14 +39,16 @@ function addMighty(packets, ctx) {
   return packets;
 }
 
-// (1d) Руна стихий: конвертировать тип всех пакетов, добавить 1д6 первой цели с уроном.
+// (1d) Руна стихий: конвертировать тип всех пакетов, добавить 1д6 каждой цели с уроном.
 function applyRuneOfElements(packets, ctx) {
   if (!ctx.mods.runeOfElements) return packets;
   const t = ctx.mods.runeType || 'fire';
-  let p = packets.map((arr) => arr.map((pk) => ({ ...pk, type: t })));
+  const p = packets.map((arr) => arr.map((pk) => ({ ...pk, type: t })));
   // «К нанесённому урону»: при промахе прибавлять не к чему.
-  const idx = p.findIndex((arr) => arr.some((pk) => pk.amount > 0));
-  if (idx >= 0) p[idx] = [...p[idx], { type: t, amount: rollTyped(ctx, 1, 6, t) }];
+  const hits = hitIndexes(p);
+  if (!hits.length) return p;
+  const bonus = rollHitBonus(ctx, hits, 1, 6, t);
+  for (const i of hits) p[i] = [...p[i], { type: t, amount: bonus }];
   return p;
 }
 
