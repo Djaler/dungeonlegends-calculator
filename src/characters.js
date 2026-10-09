@@ -14,6 +14,7 @@ export const CLASSES = {
   ranger:     { name: 'Следопыт',     ac: 12, hp: 20, dice: '1d8',  weaponStat: 'dex', stats: { str: -1, dex: 3,  con: 1,  wis: 3,  int: -1, cha: -1 } },
   necromancer:{ name: 'Некромант',    ac: 12, hp: 20, dice: '1d4',  weaponStat: 'dex', stats: { str: -1, dex: 1,  con: 2,  wis: 1,  int: 3,  cha: -2 } },
   monk:       { name: 'Монах',        ac: 10, hp: 30, dice: '1d4',  weaponStat: 'dex', stats: { str: 0,  dex: 3,  con: 3,  wis: 0,  int: -1, cha: -1 } },
+  sorcerer:   { name: 'Чародей',      ac: 12, hp: 20, dice: '1d4',  weaponStat: 'dex', stats: { str: -2, dex: 1,  con: 0,  wis: 0,  int: 3,  cha: 2  } },
 };
 
 // statMods — расовые правки характеристик (только дварф -1 ловкость).
