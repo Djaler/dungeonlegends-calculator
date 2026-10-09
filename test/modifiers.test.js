@@ -142,3 +142,14 @@ test('Могучий удваивается зельем ярости', () => {
   const out = applyPipeline([[{ type: 'physical', amount: 5 }]], baseCtx({ mods: { mighty: true, rage: true } }));
   assert.deepEqual(out, [18]); // (5 + 4) × 2
 });
+
+test('Руна стихий: при промахе прибавлять не к чему', () => {
+  // ни одного пакета урона — д6 руны не кидается (иначе seqRng исчерпался бы)
+  const out = applyPipeline([[], []], baseCtx({ rng: seqRng([]), targets: [{}, {}], mods: { runeOfElements: true, runeType: 'fire' } }));
+  assert.deepEqual(out, [0, 0]);
+});
+
+test('Руна стихий: д6 идёт первой цели, которой нанесён урон', () => {
+  const out = applyPipeline([[], [{ type: 'physical', amount: 5 }]], baseCtx({ rng: seqRng([0.99]), targets: [{}, {}], mods: { runeOfElements: true, runeType: 'fire' } }));
+  assert.deepEqual(out, [0, 11]);
+});

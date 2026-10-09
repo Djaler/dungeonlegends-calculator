@@ -35,9 +35,9 @@ function applyRuneOfElements(packets, ctx) {
   if (!ctx.mods.runeOfElements) return packets;
   const t = ctx.mods.runeType || 'fire';
   let p = packets.map((arr) => arr.map((pk) => ({ ...pk, type: t })));
-  const idx = p.findIndex((arr) => arr.length > 0);
-  const target = idx >= 0 ? idx : 0;
-  p[target] = [...(p[target] || []), { type: t, amount: sumDice(1, 6, ctx.rng, ctx.mods.orcReroll) }];
+  // «К нанесённому урону»: при промахе прибавлять не к чему.
+  const idx = p.findIndex((arr) => arr.some((pk) => pk.amount > 0));
+  if (idx >= 0) p[idx] = [...p[idx], { type: t, amount: sumDice(1, 6, ctx.rng, ctx.mods.orcReroll) }];
   return p;
 }
 
