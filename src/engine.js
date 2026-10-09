@@ -147,11 +147,13 @@ export function rollNotation(notation, rng, orcReroll, tally) {
   return sumDice(Number(m[1]), Number(m[2]), rng, orcReroll, tally);
 }
 
-// Режим спасброска цели: Сглаз накладывает помеху, расовая слабость цели
-// («Громоздкий» у голиафа) — помеху к проверкам своей характеристики.
+// Режим спасброска цели i: Сглаз накладывает помеху одной выбранной цели (hexTarget),
+// расовая слабость цели («Громоздкий» у голиафа) — помеху к проверкам своей характеристики.
 // Две помехи — всё равно одна помеха.
-export function saveModeFor(ctx, target, stat) {
+export function saveModeFor(ctx, i, stat) {
+  const target = ctx.targets[i];
   const race = target && target.race ? RACES[target.race] : null;
   const raceDis = !!(race && race.saveDis && race.saveDis[stat]);
-  return resolveMode(false, !!(ctx.mods && ctx.mods.hex) || raceDis);
+  const hexed = !!(ctx.mods && ctx.mods.hex) && i === (ctx.mods.hexTarget ?? 0);
+  return resolveMode(false, hexed || raceDis);
 }

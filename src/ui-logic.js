@@ -196,7 +196,7 @@ export function defaultState() {
       barbRage: false, bonusAttack: false, smiteDice: 0, guaranteedHit: false, luckyCrit: false,
       resolveAbilityId: null, genius: 0, talent: false, rabbitFoot: false,
       sneak: false, sneakDouble: false, gwm: false, giantHunter: false, ricochet: false,
-      contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire', reaper: false, mighty: false },
+      contactless: false, sacredWeapon: false, tincture: false, inspiration: false, runeType: 'fire', reaper: false, mighty: false, hexTarget: 0 },
     pinned: false,
     trials: 100000,
     seed: 1,

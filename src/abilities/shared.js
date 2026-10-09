@@ -14,8 +14,8 @@ function bladeDie(nat, total) {
 // Область со спасброском «ловкость — 15»: каждая цель спасается сама, а урон кидается
 // один раз на всех — провалившие получают его целиком, спасшиеся половину.
 export function dexSaveBlast(ctx, out, nDice, type) {
-  const saved = ctx.targets.map((t) => {
-    const nat = attackRoll(ctx.rng, saveModeFor(ctx, t, 'dex')); // Сглаз и «Громоздкий» — помеха
+  const saved = ctx.targets.map((t, i) => {
+    const nat = attackRoll(ctx.rng, saveModeFor(ctx, i, 'dex')); // Сглаз и «Громоздкий» — помеха
     return nat !== 1 && (nat === 20 || nat + ((t.saves && t.saves.dex) || 0) >= 15);
   });
   const full = rollShared(ctx, nDice, 6);

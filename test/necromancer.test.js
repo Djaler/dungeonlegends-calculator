@@ -62,3 +62,11 @@ test('Путь в небытие: 1d8 один раз на все цели', () 
   const p = get('pathToOblivion').simulateOnce(nctx({ rng: seqRng([0.5]), targets: [t, t] }));
   assert.deepEqual(p, [[{ type: 'necrotic', amount: 5 }], [{ type: 'necrotic', amount: 5 }]]);
 });
+
+test('Жатва: Сглаз даёт помеху спасброску только выбранной цели', () => {
+  // цель 0 без помехи: 0.99 -> успех; цель 1 под Сглазом: 0.99 и 0 -> провал; 1d10 = 10
+  const t = { ac: 10, hp: 99, saves: { con: 0 } };
+  const c = nctx({ rng: seqRng([0.99, 0.99, 0, 0.99]), targets: [t, t] });
+  c.mods.hex = true; c.mods.hexTarget = 1;
+  assert.deepEqual(get('harvest').simulateOnce(c), [[], [{ type: 'necrotic', amount: 10 }]]);
+});

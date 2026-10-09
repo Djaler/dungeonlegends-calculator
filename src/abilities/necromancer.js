@@ -1,4 +1,4 @@
-import { attackRoll, rollNotation, d20, sumDice, talentTally, rollShared } from '../engine.js';
+import { attackRoll, rollNotation, d20, sumDice, talentTally, rollShared, saveModeFor } from '../engine.js';
 
 function empty(n) {
   return Array.from({ length: n }, () => []);
@@ -74,12 +74,11 @@ export const NECRO_ABILITIES = [
       // Спасбросок использует реальный стат Стойкости (con) цели.
       // Финальный дальнобойный «выброс энергии» опускаем (вне модели урона v1).
       const out = empty(ctx.targets.length);
-      const mode = ctx.mods.hex ? 'dis' : 'none';
       // «Выберите до 3 целей» — дальше первых трёх жатва не идёт.
       const reach = Math.min(3, ctx.targets.length);
       const failed = [];
       for (let i = 0; i < reach; i++) {
-        const nat = attackRoll(ctx.rng, mode);
+        const nat = attackRoll(ctx.rng, saveModeFor(ctx, i, 'con')); // Сглаз — помеха выбранной цели
         const saved = nat === 20 || (nat !== 1 && nat + ((ctx.targets[i].saves && ctx.targets[i].saves.con) || 0) >= 15);
         if (!saved) failed.push(i);
       }

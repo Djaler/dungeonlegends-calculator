@@ -84,6 +84,7 @@ function initUI(root) {
     save();
     renderParams();
     renderTargets();
+    renderMods();
     run();
   };
 
@@ -360,7 +361,7 @@ function initUI(root) {
       ['rage', 'Зелье ярости ×2', 'удваивает физический урон'],
       ['adv', 'Преимущество (атаки)', 'влияет на броски атаки'],
       ['dis', 'Помеха (атаки)', 'влияет на броски атаки'],
-      ['hex', 'Сглаз: помеха спасброску', 'цель кидает спасбросок Ловкости с помехой'],
+      ['hex', 'Сглаз: помеха спасброску', 'одна выбранная цель кидает спасбросок с помехой'],
       ['barbRage', 'Ярость (×2 Сила)', 'варварская ярость: удваивает бонус Силы к урону'],
       ['gwm', 'Мастер большого оружия (−5/+10)', '−5 к атаке, +10 к урону'],
       ['guaranteedHit', 'Гарант. попадание (1 атака)', 'одна атака попадает автоматически'],
@@ -401,6 +402,16 @@ function initUI(root) {
             <option value="radiant" ${(state.mods.runeType||'fire')==='radiant'?'selected':''}>Излучение</option>
           </select>
         </div>` : '')
+      + (rel.hex && state.mods.hex && state.targets.length > 1 ? (() => {
+          // Сглаз накладывается на одну цель, которую выбирает волшебник.
+          const sel = Math.min(state.mods.hexTarget || 0, state.targets.length - 1);
+          return `<div class="int-row" style="margin-top:10px">
+            <div class="cap"><b>Сглаз: цель</b><span>помеха спасброску только у выбранной цели</span></div>
+            <select data-hextarget style="width:auto">
+              ${state.targets.map((_, i) => `<option value="${i}" ${sel === i ? 'selected' : ''}>Цель ${i + 1}</option>`).join('')}
+            </select>
+          </div>`;
+        })() : '')
       + (rel.humanResolve ? (() => {
           const sel = state.mods.resolveAbilityId || '';
           const opts = availableAbilities(c)
@@ -448,10 +459,16 @@ function initUI(root) {
         if (!el.checked) state.mods.sneakDouble = false;
         renderMods();
       }
+      // Сглаз показывает и прячет выбор цели.
+      if (el.dataset.mod === 'hex') renderMods();
       save(); run();
     });
     qsa('[data-runetype]').forEach((el) => el.onchange = () => {
       state.mods.runeType = el.value;
+      save(); run();
+    });
+    qsa('[data-hextarget]').forEach((el) => el.onchange = () => {
+      state.mods.hexTarget = Number(el.value);
       save(); run();
     });
     qsa('[data-resolve]').forEach((el) => el.onchange = () => {
@@ -522,7 +539,7 @@ function initUI(root) {
 
     qsa('[data-del]').forEach((b) => b.onclick = () => {
       state.targets.splice(Number(b.dataset.del), 1);
-      ensureParams(); save(); renderParams(); renderTargets(); run();
+      ensureParams(); save(); renderParams(); renderTargets(); renderMods(); run();
     });
     qsa('[data-ac]').forEach((el) => el.onchange = () => {
       state.targets[Number(el.dataset.ac)].ac = Number(el.value);
@@ -602,6 +619,7 @@ function initUI(root) {
         adv: !!(rel.adv && state.mods.adv),
         dis: !!(rel.dis && state.mods.dis),
         hex: !!(rel.hex && state.mods.hex),
+        hexTarget: Math.min(state.mods.hexTarget || 0, state.targets.length - 1),
         chaos: !!(rel.chaos && state.mods.chaos),
         rage: !!(rel.rage && state.mods.rage),
         concentration: rel.concentration ? (state.mods.concentration || 0) : 0,

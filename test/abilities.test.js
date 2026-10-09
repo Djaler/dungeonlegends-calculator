@@ -198,3 +198,16 @@ test('fireball: Сглаз и голиаф — одна помеха, а не д
   // ровно два д20 на спас, иначе seqRng сдвинется и урон не совпадёт
   assert.deepEqual(get('fireball').simulateOnce(goliathTarget(true)), [[{ type: 'fire', amount: 36 }]]);
 });
+
+test('fireball: Сглаз даёт помеху спасброску только выбранной цели', () => {
+  // цель 0 без помехи: 0.99 -> 20 успех; цель 1 под Сглазом: 0.99 и 0 -> 1 провал; 6д6 = 36
+  const rng = seqRng([0.99, 0.99, 0, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]);
+  const p = get('fireball').simulateOnce(ctx({ rng, targets: twoTargets, mods: { hex: true, hexTarget: 1 } }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 18 }], [{ type: 'fire', amount: 36 }]]);
+});
+
+test('fireball: Сглаз по умолчанию на первой цели', () => {
+  const rng = seqRng([0.99, 0, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]);
+  const p = get('fireball').simulateOnce(ctx({ rng, targets: twoTargets, mods: { hex: true } }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 36 }], [{ type: 'fire', amount: 18 }]]);
+});
