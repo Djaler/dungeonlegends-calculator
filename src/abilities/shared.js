@@ -40,11 +40,13 @@ export function multiWeaponAttack(ctx, plan) {
   const type = m.typeOverride || 'physical';
   const acIgnore = m.acIgnore || 0;
   let firstHitDone = false;     // для смайта (один раз)
-  // Губитель — одна реакция за ход: флаг живёт в состоянии хода, общем для обоих действий Решительности.
+  // Губитель и Клинок — по одной реакции за ход: флаги живут в состоянии хода,
+  // общем для обоих действий Решительности.
   const turn = ctx.turn || {};
   // Клинок напевают перед атакой: проверка бросается до первого удара.
   let blade = 0;
-  if (m.enchantedBlade) {
+  if (m.enchantedBlade && !turn.bladeDone) {
+    turn.bladeDone = true;
     const nat = d20(ctx.rng);
     blade = bladeDie(nat, nat + ctx.attackBonus('cha'));
   }

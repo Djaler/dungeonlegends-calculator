@@ -281,3 +281,11 @@ test('Очарованный клинок: кубы клинка помечен�
   multiWeaponAttack(c, [0]);
   assert.deepEqual(c.talent.tally.map((d) => d.type), [undefined, 'magic']);
 });
+
+test('Очарованный клинок: одна реакция на ход и через два действия Решительности', () => {
+  // общий ctx.turn: во втором действии нет ни проверки Харизмы, ни магии клинка
+  const c = blade([0.5, 0.5, 0.99, 0.99, 0.5, 0.99]);
+  c.turn = {};
+  assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 7 }, { type: 'magic', amount: 14 }]]);
+  assert.deepEqual(multiWeaponAttack(c, [0]), [[{ type: 'physical', amount: 7 }]]);
+});
