@@ -100,7 +100,7 @@ function initUI(root) {
 
   function effectiveStats() {
     const c = state.character;
-    const base = deriveStats(c.classKey, c.raceKey, c.game, c.bumps);
+    const base = deriveStats(c.classKey, c.raceKey, c.game, c.bumps, c.artifacts);
     return { ...base, ...c.statOverrides };
   }
 

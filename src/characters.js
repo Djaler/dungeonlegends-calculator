@@ -49,12 +49,14 @@ function topTwoStats(stats) {
 
 // При игре >= 8 получает +1 к двум наивысшим из ФАКТИЧЕСКИХ статов (с учётом расовых правок).
 
-export function deriveStats(classKey, raceKey, game, bumps) {
+// Кольцо легенды снимает слабость расы — в том числе расовую правку статов (дварф -1 ловкость).
+export function deriveStats(classKey, raceKey, game, bumps, artifacts) {
   const c = CLASSES[classKey];
   const r = RACES[raceKey];
   if (!c || !r) throw new Error('Неизвестный класс или раса');
+  const statMods = artifacts && artifacts.includes('ringOfLegend') ? {} : r.statMods;
   const out = {};
-  for (const k of STAT_KEYS) out[k] = c.stats[k] + (r.statMods[k] || 0);
+  for (const k of STAT_KEYS) out[k] = c.stats[k] + (statMods[k] || 0);
   if (game >= 8) {
     const chosen = bumps && bumps.length === 2 ? bumps : topTwoStats(out);
     for (const k of chosen) out[k] += 1;

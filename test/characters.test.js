@@ -88,3 +88,8 @@ test('Чародей: таблица класса из правил', () => {
     stats: { str: -2, dex: 1, con: 0, wis: 0, int: 3, cha: 2 },
   });
 });
+
+test('Кольцо легенды снимает слабость дварфа «-1 к ловкости»', () => {
+  assert.equal(deriveStats('wizard', 'dwarf', 1, null, ['ringOfLegend']).dex, 0);
+  assert.equal(deriveStats('wizard', 'dwarf', 1, null, ['runeOfWarrior']).dex, -1);
+});

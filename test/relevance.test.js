@@ -61,7 +61,7 @@ const mkTargets = (set) => set.map((t) => ({
 
 function affects(ability, character, modId, targetSet) {
   const targets = mkTargets(targetSet);
-  const stats = deriveStats(character.classKey, character.raceKey, character.game, null);
+  const stats = deriveStats(character.classKey, character.raceKey, character.game, null, character.artifacts);
   const base = {
     classKey: character.classKey,
     stats,
