@@ -41,19 +41,24 @@ test('Жатва: провал спасброска -> 1d10', () => {
   assert.deepEqual(p, [[{ type: 'necrotic', amount: 10 }]]);
 });
 
-test('Жатва берёт не больше 3 целей', () => {
-  // 5 целей, но бросков хватает ровно на три (провал + 1d10 на каждую):
-  // четвёртая и пятая не трогаются, иначе seqRng исчерпался бы.
+test('Жатва берёт не больше 3 целей, урон один на всех провалившим', () => {
+  // три спаса-провала (0), затем ОДИН 1d10 = 10; четвёртая и пятая не трогаются
   const t = { ac: 10, hp: 99, saves: { con: 0 } };
-  const p = get('harvest').simulateOnce(nctx({
-    rng: seqRng([0, 0.99, 0, 0.99, 0, 0.99]),
-    targets: [t, t, t, t, t],
-  }));
-  assert.deepEqual(p, [
-    [{ type: 'necrotic', amount: 10 }],
-    [{ type: 'necrotic', amount: 10 }],
-    [{ type: 'necrotic', amount: 10 }],
-    [],
-    [],
-  ]);
+  const p = get('harvest').simulateOnce(nctx({ rng: seqRng([0, 0, 0, 0.99]), targets: [t, t, t, t, t] }));
+  const hit = [{ type: 'necrotic', amount: 10 }];
+  assert.deepEqual(p, [hit, hit, hit, [], []]);
+});
+
+test('Жатва: спасшаяся цель без урона, все спаслись — урон не кидается', () => {
+  const t = { ac: 10, hp: 99, saves: { con: 0 } };
+  const mixed = get('harvest').simulateOnce(nctx({ rng: seqRng([0, 0.99, 0.99]), targets: [t, t] }));
+  assert.deepEqual(mixed, [[{ type: 'necrotic', amount: 10 }], []]);
+  const none = get('harvest').simulateOnce(nctx({ rng: seqRng([0.99, 0.99]), targets: [t, t] }));
+  assert.deepEqual(none, [[], []]);
+});
+
+test('Путь в небытие: 1d8 один раз на все цели', () => {
+  const t = { ac: 10, hp: 99 };
+  const p = get('pathToOblivion').simulateOnce(nctx({ rng: seqRng([0.5]), targets: [t, t] }));
+  assert.deepEqual(p, [[{ type: 'necrotic', amount: 5 }], [{ type: 'necrotic', amount: 5 }]]);
 });

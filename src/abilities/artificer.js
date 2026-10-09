@@ -1,4 +1,4 @@
-import { attackOnce, resolveModeFor, rollNotation, rollDie, sumDice, talentTally } from '../engine.js';
+import { attackOnce, resolveModeFor, rollNotation, rollDie, talentTally, rollShared } from '../engine.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -39,10 +39,9 @@ export const ARTIFICER_ABILITIES = [
     usesAttackRoll: false, usesSave: false, category: 'magic', params: [],
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
-      // 2d6 огнём по всем целям (авто, без броска атаки)
-      for (let i = 0; i < ctx.targets.length; i++) {
-        out[i].push({ type: 'fire', amount: sumDice(2, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
-      }
+      // 2d6 огнём по всем целям (авто, без броска атаки), один бросок на всех
+      const amount = rollShared(ctx, 2, 6);
+      for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'fire', amount });
       return out;
     },
   },
@@ -72,9 +71,8 @@ export const ARTIFICER_ABILITIES = [
       const roll = rollDie(4, ctx.rng, false);
       // 1 → 2d4 огнём всем целям; 2–4 → без урона (броня−/броня+/лечение вне модели урона)
       if (roll === 1) {
-        for (let i = 0; i < ctx.targets.length; i++) {
-          out[i].push({ type: 'fire', amount: sumDice(2, 4, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
-        }
+        const amount = rollShared(ctx, 2, 4);
+        for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'fire', amount });
       }
       return out;
     },

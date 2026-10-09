@@ -1,6 +1,18 @@
-import { rollNotation, attackOnce, resolveModeFor, sumDice, talentTally } from '../engine.js';
+import { rollNotation, attackOnce, resolveModeFor, sumDice, talentTally, attackRoll, rollShared } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
+
+// Область со спасброском «ловкость — 15»: каждая цель спасается сама, а урон кидается
+// один раз на всех — провалившие получают его целиком, спасшиеся половину.
+export function dexSaveBlast(ctx, out, nDice, type) {
+  const saved = ctx.targets.map((t) => {
+    const nat = attackRoll(ctx.rng, ctx.mods.hex ? 'dis' : 'none'); // Сглаз = помеха спасброску
+    return nat !== 1 && (nat === 20 || nat + ((t.saves && t.saves.dex) || 0) >= 15);
+  });
+  const full = rollShared(ctx, nDice, 6);
+  saved.forEach((s, i) => out[i].push({ type, amount: s ? Math.floor(full / 2) : full }));
+  return out;
+}
 
 // Универсальная атака оружием по плану целей (по одной атаке на элемент plan).
 // Все сквозные боевые модификаторы централизованы здесь.

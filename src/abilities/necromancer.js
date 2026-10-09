@@ -1,4 +1,4 @@
-import { attackRoll, rollNotation, d20, sumDice, talentTally } from '../engine.js';
+import { attackRoll, rollNotation, d20, sumDice, talentTally, rollShared } from '../engine.js';
 
 function empty(n) {
   return Array.from({ length: n }, () => []);
@@ -26,14 +26,10 @@ export const NECRO_ABILITIES = [
     category: 'magic',
     params: [],
     simulateOnce(ctx) {
-      // Каждая цель получает 1d8 некротического урона.
+      // Все цели на линии получают один и тот же бросок 1d8 некротического урона.
       const out = empty(ctx.targets.length);
-      for (let i = 0; i < ctx.targets.length; i++) {
-        out[i].push({
-          type: 'necrotic',
-          amount: rollNotation('1d8', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)),
-        });
-      }
+      const amount = rollShared(ctx, 1, 8);
+      for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'necrotic', amount });
       return out;
     },
   },
@@ -81,15 +77,16 @@ export const NECRO_ABILITIES = [
       const mode = ctx.mods.hex ? 'dis' : 'none';
       // «Выберите до 3 целей» — дальше первых трёх жатва не идёт.
       const reach = Math.min(3, ctx.targets.length);
+      const failed = [];
       for (let i = 0; i < reach; i++) {
         const nat = attackRoll(ctx.rng, mode);
         const saved = nat === 20 || (nat !== 1 && nat + ((ctx.targets[i].saves && ctx.targets[i].saves.con) || 0) >= 15);
-        if (!saved) {
-          out[i].push({
-            type: 'necrotic',
-            amount: rollNotation('1d10', ctx.rng, ctx.mods.orcReroll, talentTally(ctx)),
-          });
-        }
+        if (!saved) failed.push(i);
+      }
+      // Один бросок 1d10 на всех провалившихся; если провалившихся нет — кидать нечего.
+      if (failed.length) {
+        const amount = rollShared(ctx, 1, 10);
+        for (const i of failed) out[i].push({ type: 'necrotic', amount });
       }
       return out;
     },

@@ -75,3 +75,16 @@ test('Нестабильный: д4=2 -> нет урона', () => {
   const p = get('unstableArgument').simulateOnce(actx({ rng: seqRng([0.5]) }));
   assert.deepEqual(p, [[]]);
 });
+
+const twoT = [{ ac: 10, hp: 99 }, { ac: 10, hp: 99 }];
+
+test('Огнемёт: 2d6 один раз на все цели', () => {
+  const p = get('flamethrower').simulateOnce(actx({ rng: seqRng([0.99, 0.5]), targets: twoT }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 10 }], [{ type: 'fire', amount: 10 }]]);
+});
+
+test('Нестабильный, грань 1: 2d4 один раз на все цели', () => {
+  // грань 0 -> 1; 2d4: 4 + 3 = 7
+  const p = get('unstableArgument').simulateOnce(actx({ rng: seqRng([0, 0.99, 0.5]), targets: twoT }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 7 }], [{ type: 'fire', amount: 7 }]]);
+});

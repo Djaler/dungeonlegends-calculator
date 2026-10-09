@@ -19,3 +19,9 @@ test('tieflingRetribution: 1d8 огнём', () => {
   const p = get('tieflingRetribution').simulateOnce(ctx({ rng: seqRng([0.99]) }));
   assert.deepEqual(p, [[{type:'fire',amount:8}]]);
 });
+
+test('dragonbornBreath: 2d6 кидается один раз на все цели', () => {
+  // 6 + 4 = 10 обеим; при броске на каждую цель seqRng исчерпался бы
+  const p = get('dragonbornBreath').simulateOnce(ctx({ rng: seqRng([0.99, 0.5]), targets: [{ ac: 12, hp: 30 }, { ac: 12, hp: 30 }] }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 10 }], [{ type: 'fire', amount: 10 }]]);
+});

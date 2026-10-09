@@ -1,4 +1,5 @@
-import { rollDie, sumDice, attackRoll, attackOnce, resolveModeFor, talentTally } from '../engine.js';
+import { rollDie, sumDice, attackOnce, resolveModeFor, talentTally } from '../engine.js';
+import { dexSaveBlast } from './shared.js';
 
 // Пустые пакеты на каждую цель.
 function empty(n) { return Array.from({ length: n }, () => []); }
@@ -56,16 +57,7 @@ export const WIZARD_ABILITIES = [
     minGame: 1, choiceGroup: null, charges: '1 раз в бой', targeting: 'area',
     params: [],
     simulateOnce(ctx) {
-      const out = empty(ctx.targets.length);
-      const mode = ctx.mods.hex ? 'dis' : 'none'; // Сглаз = помеха спасброску цели
-      for (let i = 0; i < ctx.targets.length; i++) {
-        const saveBonus = (ctx.targets[i].saves && ctx.targets[i].saves.dex) || 0;
-        const nat = attackRoll(ctx.rng, mode);
-        const saved = nat !== 1 && (nat === 20 || nat + saveBonus >= 15);
-        const full = sumDice(6, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx));
-        out[i].push({ type: 'fire', amount: saved ? Math.floor(full / 2) : full });
-      }
-      return out;
+      return dexSaveBlast(ctx, empty(ctx.targets.length), 6, 'fire');
     },
   },
   {

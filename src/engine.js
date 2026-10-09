@@ -94,6 +94,14 @@ export function talentDamageBonus(ctx) {
   return spendTalentOnDice(ctx, t.tally);
 }
 
+// Общий урон области: кубы кидаются один раз на все цели. Талант на них тратится сразу —
+// прибавка к общему кубу достаётся каждой цели, — и в журнал они не пишутся,
+// иначе остаток Таланта в конце хода лёг бы на них повторно.
+export function rollShared(ctx, n, sides) {
+  const dice = [];
+  return sumDice(n, sides, ctx.rng, ctx.mods.orcReroll, dice) + spendTalentOnDice(ctx, dice);
+}
+
 // Режим броска по конкретной цели: к общим флагам хода добавляются состояния цели
 // (скованный, окружённый, лежачий, дуэль) — у разных целей они разные.
 export function resolveModeFor(adv, dis, target) {

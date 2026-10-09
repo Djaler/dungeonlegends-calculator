@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeRng, rollDie, sumDice, d20, resolveMode, attackRoll, isHit, CRIT_DOUBLES_DICE, rollNotation,
-  isHitWithTalent, talentDamageBonus, TALENT_USES, spendTalentOnDice } from '../src/engine.js';
+  isHitWithTalent, talentDamageBonus, TALENT_USES, spendTalentOnDice, rollShared } from '../src/engine.js';
 import { seqRng } from './helpers.js';
 
 test('makeRng детерминирован по зерну', () => {
@@ -210,4 +210,11 @@ test('rollNotation: орочий переброс прокидывается в 
 
 test('rollNotation: мусор бросает ошибку', () => {
   assert.throws(() => rollNotation('abc', seqRng([0]), false), /кость/i);
+});
+
+test('rollShared: один бросок, Талант тратится сразу и не пишется в журнал', () => {
+  const ctx = { rng: seqRng([0, 0.99]), mods: { orcReroll: false }, talent: { left: 3, tally: [] } };
+  assert.equal(rollShared(ctx, 2, 6), 7 + 3); // 1 + 6, тройка уходит в единицу
+  assert.equal(ctx.talent.left, 2);
+  assert.equal(ctx.talent.tally.length, 0);
 });

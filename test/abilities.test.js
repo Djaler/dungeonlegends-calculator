@@ -163,3 +163,22 @@ test('unknownAttack: ровно 15 психического по цели', () =
   const p = get('unknownAttack').simulateOnce(ctx({ rng: seqRng([]), targets:[{ac:99,hp:99}], params:{target:0} }));
   assert.deepEqual(p, [[{ type: 'psychic', amount: 15 }]]);
 });
+
+const twoTargets = [{ ac: 12, hp: 99, saves: { dex: 0 } }, { ac: 12, hp: 99, saves: { dex: 0 } }];
+
+test('fireball: урон кидается один раз на всех — провал целиком, спас половина', () => {
+  // спасы: 0 -> 1 провал, 0.99 -> 20 успех; затем ОДИН бросок 6д6 = 36
+  const rng = seqRng([0, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99]);
+  const p = get('fireball').simulateOnce(ctx({ rng, targets: twoTargets }));
+  assert.deepEqual(p, [[{ type: 'fire', amount: 36 }], [{ type: 'fire', amount: 18 }]]);
+});
+
+test('fireball: Талант на общих кубах прибавляется каждой цели', () => {
+  // оба провалили; 6д6 по единице = 6; три заряда по +3 = 15 каждой цели
+  const c = ctx({ rng: seqRng([0, 0, 0, 0, 0, 0, 0, 0]), targets: twoTargets });
+  c.talent = { left: 3, tally: [] };
+  const p = get('fireball').simulateOnce(c);
+  assert.deepEqual(p, [[{ type: 'fire', amount: 15 }], [{ type: 'fire', amount: 15 }]]);
+  assert.equal(c.talent.left, 0);
+  assert.equal(c.talent.tally.length, 0);
+});

@@ -1,4 +1,4 @@
-import { sumDice, talentTally } from '../engine.js';
+import { sumDice, talentTally, rollShared } from '../engine.js';
 
 function empty(n) { return Array.from({ length: n }, () => []); }
 
@@ -9,7 +9,8 @@ export const RACIAL_ABILITIES = [
     usesAttackRoll: false, usesSave: false, category: 'magic', params: [],
     simulateOnce(ctx) {
       const out = empty(ctx.targets.length);
-      for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'fire', amount: sumDice(2, 6, ctx.rng, ctx.mods.orcReroll, talentTally(ctx)) });
+      const amount = rollShared(ctx, 2, 6); // урон по области — один бросок на всех
+      for (let i = 0; i < ctx.targets.length; i++) out[i].push({ type: 'fire', amount });
       return out;
     },
   },
